@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import AppIcon from '@/components/AppIcon';
 
 export default function Register() {
   const [step, setStep] = useState(1);
@@ -37,9 +38,9 @@ export default function Register() {
       <div className="auth-container">
         <div className="auth-box register-box">
           <div className="auth-header">
-            <div className="auth-icon">🛡️</div>
+            <div className="auth-icon"><AppIcon name="shieldCheck" size={24} /></div>
             <h1>Create Your Account</h1>
-            <p>Join PayShield's secure payment platform</p>
+            <p>Set up your account with enterprise-grade protection controls.</p>
           </div>
 
           <div className="step-indicator">
@@ -126,7 +127,7 @@ export default function Register() {
               <>
                 <h3 className="form-section-title">Security Questions</h3>
                 <p className="security-note">
-                  <span className="note-icon">🔒</span>
+                  <span className="note-icon"><AppIcon name="lock" size={16} /></span>
                   These answers will be encrypted and stored on blockchain. They will never 
                   be stored on your device or browser.
                 </p>
@@ -160,7 +161,7 @@ export default function Register() {
                 </div>
 
                 <div className="info-box">
-                  <h4>🤫 The Childhood Whisper</h4>
+                  <h4><AppIcon name="scan" size={16} className="inline-icon" /> The Childhood Whisper</h4>
                   <p>
                     During suspicious login attempts, you'll be asked to combine these answers 
                     to prove your identity. Only you know these personal details!
@@ -195,10 +196,10 @@ export default function Register() {
             <div className="security-features-list">
               <h4>Your account will be protected with:</h4>
               <div className="mini-features">
-                <span className="mini-feature">🔐 Spice Lock</span>
-                <span className="mini-feature">🪞 Mirror Maze</span>
-                <span className="mini-feature">🛂 Digital Passport</span>
-                <span className="mini-feature">🧬 Device DNA</span>
+                <span className="mini-feature"><AppIcon name="lock" size={14} /> Spice Lock</span>
+                <span className="mini-feature"><AppIcon name="shield" size={14} /> Mirror Maze</span>
+                <span className="mini-feature"><AppIcon name="globe" size={14} /> Digital Passport</span>
+                <span className="mini-feature"><AppIcon name="dna" size={14} /> Device DNA</span>
               </div>
             </div>
           )}

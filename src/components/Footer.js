@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import AppIcon from '@/components/AppIcon';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -9,7 +10,7 @@ export default function Footer() {
         <div className="footer-grid">
           <div className="footer-section">
             <h3 className="footer-title">
-              <span className="logo-icon">🛡️</span>
+              <span className="logo-icon"><AppIcon name="shieldCheck" size={18} /></span>
               PayShield
             </h3>
             <p className="footer-description">
