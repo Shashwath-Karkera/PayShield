@@ -1,0 +1,7 @@
+# NeonDB connection
+DATABASE_URL="postgresql://<user>:<password>@<host>/<database>?sslmode=require"
+DIRECT_URL="postgresql://<user>:<password>@<host>/<database>?sslmode=require"
+
+# App-level security secrets
+APP_ENCRYPTION_KEY="replace_with_32+_char_secret"
+SPICE_PEPPER_KEY="replace_with_server_pepper_secret"

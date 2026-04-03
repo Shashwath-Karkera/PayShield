@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import AppIcon from '@/components/AppIcon';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -10,7 +11,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="nav-container">
         <Link href="/" className="logo">
-          <span className="logo-icon">🛡️</span>
+          <span className="logo-icon"><AppIcon name="shieldCheck" size={18} /></span>
           <span className="logo-text">PayShield</span>
         </Link>
 

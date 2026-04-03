@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  DECLINED
+  FLAGGED
+  FROZEN
+}
+
+enum LedgerType {
+  REAL
+  MIRROR
+}
+
+enum SecurityEventType {
+  FLAGGED_PAYMENT
+  CHILDHOOD_WHISPER_PASSED
+  CHILDHOOD_WHISPER_FAILED
+  ACCOUNT_FROZEN
+  PROFILE_UPDATED
+  PASSWORD_CHANGED
+}
+
+model User {
+  id                          String           @id @default(cuid())
+  email                       String           @unique
+  name                        String?
+  phone                       String?
+  passwordHash                String
+  spiceSalt                   String
+  balance                     Decimal          @default(0) @db.Decimal(18, 2)
+  genuinityScore              Float            @default(100)
+  isFrozen                    Boolean          @default(false)
+  frozenReason                String?
+  lastKnownCountry            String?
+  lastKnownCity               String?
+  lastKnownIp                 String?
+  lastKnownDeviceDna          String?
+  childhoodWhisperMotherEnc   String
+  childhoodWhisperPetEnc      String
+  createdAt                   DateTime         @default(now())
+  updatedAt                   DateTime         @updatedAt
+
+  transactions                Transaction[]
+  behavioralLogs              BehavioralLog[]
+  bankCredentials             BankCredential[]
+  securityEvents              SecurityEvent[]
+
+  @@index([email])
+  @@index([genuinityScore])
+  @@index([isFrozen])
+}
+
+model Transaction {
+  id                  String             @id @default(cuid())
+  userId              String
+  amount              Decimal            @db.Decimal(18, 2)
+  currency            String             @default("INR")
+  payee               String
+  upiRef              String?            @unique
+  status              TransactionStatus  @default(PENDING)
+  ledgerType          LedgerType         @default(REAL)
+  locationCountry     String?
+  locationCity        String?
+  ipAddress           String?
+  deviceDna           String?
+  browserSignature    String?
+  screenResolution    String?
+  mlScore             Float?
+  mlReasons           Json?
+  isTransferAllAttempt Boolean           @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([ledgerType])
+  @@index([locationCountry])
+}
+
+model BehavioralLog {
+  id                  String    @id @default(cuid())
+  userId              String
+  mouseShakeIntensity Float
+  scrollSpeed         Float
+  paymentFrequency    Int
+  transferAllIntent   Boolean   @default(false)
+  locationCountry     String?
+  locationCity        String?
+  ipAddress           String?
+  deviceDna           String?
+  browserSignature    String?
+  screenResolution    String?
+  createdAt           DateTime  @default(now())
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([transferAllIntent])
+}
+
+model BankCredential {
+  id                String   @id @default(cuid())
+  userId            String
+  bankName          String
+  accountHolderName String
+  encryptedPayload  String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model SecurityEvent {
+  id          String            @id @default(cuid())
+  userId      String
+  type        SecurityEventType
+  ipAddress   String?
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([type])
+}

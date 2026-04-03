@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import AppIcon from '@/components/AppIcon';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -27,9 +28,9 @@ export default function Login() {
       <div className="auth-container">
         <div className="auth-box">
           <div className="auth-header">
-            <div className="auth-icon">🛡️</div>
+            <div className="auth-icon"><AppIcon name="shieldCheck" size={24} /></div>
             <h1>Welcome Back</h1>
-            <p>Login to your PayShield account</p>
+            <p>Sign in to access your secure payment workspace.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
@@ -80,8 +81,8 @@ export default function Login() {
 
           <div className="social-login">
             <button className="btn btn-social">
-              <span>🔐</span>
-              Continue with Biometric
+              <span><AppIcon name="scan" size={16} /></span>
+              Continue with biometric verification
             </button>
           </div>
 
@@ -95,10 +96,10 @@ export default function Login() {
           </div>
 
           <div className="security-badge">
-            <span className="badge-icon">🔒</span>
+            <span className="badge-icon"><AppIcon name="lock" size={16} /></span>
             <div className="badge-text">
               <strong>Protected by 7-Layer Security</strong>
-              <p>Your login is protected with advanced encryption</p>
+              <p>Session and credential validation run in real time.</p>
             </div>
           </div>
         </div>

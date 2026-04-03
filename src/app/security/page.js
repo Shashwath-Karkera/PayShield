@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import AppIcon from '@/components/AppIcon';
 
 export default function Security() {
   const [securityQuestions, setSecurityQuestions] = useState({
@@ -74,7 +75,7 @@ export default function Security() {
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
-                  <span className="layer-icon">🔐</span>
+                  <span className="layer-icon"><AppIcon name="lock" size={16} /></span>
                   <div>
                     <h3>The Spice Lock</h3>
                     <p>Triple-layer password encryption</p>
@@ -99,7 +100,7 @@ export default function Security() {
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
-                  <span className="layer-icon">🪞</span>
+                  <span className="layer-icon"><AppIcon name="shield" size={16} /></span>
                   <div>
                     <h3>The Mirror Maze</h3>
                     <p>Decoy accounts protection</p>
@@ -123,7 +124,7 @@ export default function Security() {
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
-                  <span className="layer-icon">🛂</span>
+                  <span className="layer-icon"><AppIcon name="globe" size={16} /></span>
                   <div>
                     <h3>The Digital Passport</h3>
                     <p>Location and device verification</p>
@@ -147,7 +148,7 @@ export default function Security() {
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
-                  <span className="layer-icon">🤫</span>
+                  <span className="layer-icon"><AppIcon name="scan" size={16} /></span>
                   <div>
                     <h3>The Childhood Whisper</h3>
                     <p>Blockchain-secured personal verification</p>
@@ -174,7 +175,7 @@ export default function Security() {
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
-                  <span className="layer-icon">⏱️</span>
+                  <span className="layer-icon"><AppIcon name="timer" size={16} /></span>
                   <div>
                     <h3>The Slow Motion Trap</h3>
                     <p>Intelligent delay during threats</p>
@@ -198,7 +199,7 @@ export default function Security() {
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
-                  <span className="layer-icon">🧬</span>
+                  <span className="layer-icon"><AppIcon name="dna" size={16} /></span>
                   <div>
                     <h3>The Device DNA</h3>
                     <p>20+ unique device identifiers</p>
@@ -225,7 +226,7 @@ export default function Security() {
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
-                  <span className="layer-icon">📹</span>
+                  <span className="layer-icon"><AppIcon name="camera" size={16} /></span>
                   <div>
                     <h3>The Behavior Camera</h3>
                     <p>AI-powered behavioral analytics</p>
@@ -249,7 +250,7 @@ export default function Security() {
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
-                  <span className="layer-icon">🚨</span>
+                  <span className="layer-icon"><AppIcon name="alert" size={16} /></span>
                   <div>
                     <h3>Alert System</h3>
                     <p>Multi-channel threat notifications</p>
@@ -277,7 +278,7 @@ export default function Security() {
             <h2 className="section-title-small">Update Security Questions</h2>
             <div className="info-box">
               <p>
-                <strong>🔒 Blockchain Protection:</strong> These answers are encrypted and stored on blockchain. 
+                <strong><AppIcon name="lock" size={14} /> Blockchain Protection:</strong> These answers are encrypted and stored on blockchain. 
                 They will never be accessible from your browser or device.
               </p>
             </div>
@@ -319,7 +320,7 @@ export default function Security() {
             
             <div className="option-card">
               <div className="option-info">
-                <h3>📱 Two-Factor Authentication (2FA)</h3>
+                <h3><AppIcon name="mobile" size={14} /> Two-Factor Authentication (2FA)</h3>
                 <p>Add an extra layer of security with SMS or authenticator app</p>
               </div>
               <button className="btn btn-secondary">Enable 2FA</button>
@@ -327,7 +328,7 @@ export default function Security() {
 
             <div className="option-card">
               <div className="option-info">
-                <h3>🔔 Transaction Notifications</h3>
+                <h3><AppIcon name="bell" size={14} /> Transaction Notifications</h3>
                 <p>Receive instant alerts for every transaction</p>
               </div>
               <label className="toggle-switch">
@@ -338,7 +339,7 @@ export default function Security() {
 
             <div className="option-card">
               <div className="option-info">
-                <h3>🌍 Geographic Restrictions</h3>
+                <h3><AppIcon name="globe" size={14} /> Geographic Restrictions</h3>
                 <p>Automatically block transactions from unauthorized countries</p>
               </div>
               <label className="toggle-switch">
@@ -349,7 +350,7 @@ export default function Security() {
 
             <div className="option-card">
               <div className="option-info">
-                <h3>⏰ Time-Based Restrictions</h3>
+                <h3><AppIcon name="timer" size={14} /> Time-Based Restrictions</h3>
                 <p>Block transactions during unusual hours (e.g., 12 AM - 6 AM)</p>
               </div>
               <label className="toggle-switch">
@@ -364,7 +365,7 @@ export default function Security() {
             <h2 className="section-title-small">Danger Zone</h2>
             <div className="danger-card">
               <div className="danger-info">
-                <h3>🔄 Reset All Security Settings</h3>
+                <h3><AppIcon name="settings" size={14} /> Reset All Security Settings</h3>
                 <p>This will reset all security features to default settings</p>
               </div>
               <button className="btn btn-danger">Reset Settings</button>
@@ -372,7 +373,7 @@ export default function Security() {
 
             <div className="danger-card">
               <div className="danger-info">
-                <h3>🗑️ Delete Account</h3>
+                <h3><AppIcon name="alert" size={14} /> Delete Account</h3>
                 <p>Permanently delete your PayShield account and all data</p>
               </div>
               <button className="btn btn-danger">Delete Account</button>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import AppIcon from '@/components/AppIcon';
 
 export default function Dashboard() {
   const [activeAccount, setActiveAccount] = useState('real');
@@ -11,34 +12,34 @@ export default function Dashboard() {
       <div className="dashboard-container">
         <div className="dashboard-sidebar">
           <div className="user-profile">
-            <div className="user-avatar">👤</div>
+            <div className="user-avatar"><AppIcon name="profile" size={20} /></div>
             <h3>John Doe</h3>
             <p>john.doe@example.com</p>
           </div>
 
           <nav className="dashboard-nav">
             <a href="#overview" className="nav-item active">
-              <span className="nav-icon">📊</span>
+              <span className="nav-icon"><AppIcon name="check" size={14} /></span>
               Overview
             </a>
             <a href="#transactions" className="nav-item">
-              <span className="nav-icon">💳</span>
+              <span className="nav-icon"><AppIcon name="card" size={14} /></span>
               Transactions
             </a>
             <Link href="/security" className="nav-item">
-              <span className="nav-icon">🔒</span>
+              <span className="nav-icon"><AppIcon name="lock" size={14} /></span>
               Security
             </Link>
             <a href="#alerts" className="nav-item">
-              <span className="nav-icon">🚨</span>
+              <span className="nav-icon"><AppIcon name="alert" size={14} /></span>
               Alerts
             </a>
             <a href="#devices" className="nav-item">
-              <span className="nav-icon">📱</span>
+              <span className="nav-icon"><AppIcon name="mobile" size={14} /></span>
               Devices
             </a>
             <a href="#settings" className="nav-item">
-              <span className="nav-icon">⚙️</span>
+              <span className="nav-icon"><AppIcon name="settings" size={14} /></span>
               Settings
             </a>
           </nav>
@@ -49,10 +50,10 @@ export default function Dashboard() {
             <h1>Dashboard</h1>
             <div className="header-actions">
               <button className="btn btn-secondary btn-small">
-                💸 Make Payment
+                <AppIcon name="payment" size={14} /> Make Payment
               </button>
               <button className="btn btn-primary btn-small">
-                ➕ Add Money
+                <AppIcon name="wallet" size={14} /> Add Funds
               </button>
             </div>
           </div>
@@ -62,7 +63,7 @@ export default function Dashboard() {
             <div className="balance-card primary">
               <div className="balance-header">
                 <h3>Main Balance</h3>
-                <span className="balance-badge real">🔐 Protected</span>
+                <span className="balance-badge real"><AppIcon name="lock" size={12} /> Protected</span>
               </div>
               <div className="balance-amount">₹1,25,430.00</div>
               <div className="balance-footer">
@@ -71,7 +72,7 @@ export default function Dashboard() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">📈</div>
+              <div className="stat-icon"><AppIcon name="spark" size={18} /></div>
               <div className="stat-content">
                 <h4>This Month</h4>
                 <div className="stat-value">₹25,600</div>
@@ -80,7 +81,7 @@ export default function Dashboard() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">✅</div>
+              <div className="stat-icon"><AppIcon name="check" size={18} /></div>
               <div className="stat-content">
                 <h4>Security Score</h4>
                 <div className="stat-value">98%</div>
@@ -89,7 +90,7 @@ export default function Dashboard() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">🚨</div>
+              <div className="stat-icon"><AppIcon name="alert" size={18} /></div>
               <div className="stat-content">
                 <h4>Threats Blocked</h4>
                 <div className="stat-value">3</div>
@@ -103,42 +104,42 @@ export default function Dashboard() {
             <h2 className="section-title-small">Active Protection</h2>
             <div className="protection-grid">
               <div className="protection-card active">
-                <div className="protection-icon">🔐</div>
+                <div className="protection-icon"><AppIcon name="lock" size={18} /></div>
                 <h4>Spice Lock</h4>
                 <span className="status-badge success">Active</span>
                 <p>Your password is protected with salt & pepper encryption</p>
               </div>
 
               <div className="protection-card active">
-                <div className="protection-icon">🪞</div>
+                <div className="protection-icon"><AppIcon name="shield" size={18} /></div>
                 <h4>Mirror Maze</h4>
                 <span className="status-badge success">Active</span>
                 <p>3 decoy accounts are protecting your real balance</p>
               </div>
 
               <div className="protection-card active">
-                <div className="protection-icon">🛂</div>
+                <div className="protection-icon"><AppIcon name="globe" size={18} /></div>
                 <h4>Digital Passport</h4>
                 <span className="status-badge success">Active</span>
                 <p>Location: Bangalore, India | Device: Trusted</p>
               </div>
 
               <div className="protection-card active">
-                <div className="protection-icon">🧬</div>
+                <div className="protection-icon"><AppIcon name="dna" size={18} /></div>
                 <h4>Device DNA</h4>
                 <span className="status-badge success">Active</span>
                 <p>Your device signature is verified and trusted</p>
               </div>
 
               <div className="protection-card active">
-                <div className="protection-icon">📹</div>
+                <div className="protection-icon"><AppIcon name="camera" size={18} /></div>
                 <h4>Behavior Camera</h4>
                 <span className="status-badge success">Learning</span>
                 <p>AI is monitoring your usage patterns</p>
               </div>
 
               <div className="protection-card active">
-                <div className="protection-icon">🚨</div>
+                <div className="protection-icon"><AppIcon name="alert" size={18} /></div>
                 <h4>Alert System</h4>
                 <span className="status-badge success">Ready</span>
                 <p>GSM alerts configured for +91-XXXXX-XXXXX</p>
@@ -210,7 +211,7 @@ export default function Dashboard() {
             <div className="alerts-list">
               <div className="alert-card blocked">
                 <div className="alert-header">
-                  <span className="alert-icon">🚫</span>
+                  <span className="alert-icon"><AppIcon name="alert" size={14} /></span>
                   <div className="alert-title">
                     <h4>Suspicious Login Blocked</h4>
                     <span className="alert-time">2 hours ago</span>
@@ -228,7 +229,7 @@ export default function Dashboard() {
 
               <div className="alert-card info">
                 <div className="alert-header">
-                  <span className="alert-icon">ℹ️</span>
+                  <span className="alert-icon"><AppIcon name="check" size={14} /></span>
                   <div className="alert-title">
                     <h4>New Device Detected</h4>
                     <span className="alert-time">1 day ago</span>
@@ -246,7 +247,7 @@ export default function Dashboard() {
 
               <div className="alert-card blocked">
                 <div className="alert-header">
-                  <span className="alert-icon">⚠️</span>
+                  <span className="alert-icon"><AppIcon name="alert" size={14} /></span>
                   <div className="alert-title">
                     <h4>Unusual Transaction Pattern</h4>
                     <span className="alert-time">3 days ago</span>
@@ -269,7 +270,7 @@ export default function Dashboard() {
             <h2 className="section-title-small">Trusted Devices</h2>
             <div className="devices-grid">
               <div className="device-card current">
-                <div className="device-icon">💻</div>
+                <div className="device-icon"><AppIcon name="device" size={18} /></div>
                 <h4>Windows Laptop</h4>
                 <p className="device-name">Dell XPS 15</p>
                 <div className="device-meta">
@@ -280,7 +281,7 @@ export default function Dashboard() {
               </div>
 
               <div className="device-card">
-                <div className="device-icon">📱</div>
+                <div className="device-icon"><AppIcon name="mobile" size={18} /></div>
                 <h4>iPhone 14</h4>
                 <p className="device-name">iOS 17.2</p>
                 <div className="device-meta">
@@ -291,7 +292,7 @@ export default function Dashboard() {
               </div>
 
               <div className="device-card">
-                <div className="device-icon">🖥️</div>
+                <div className="device-icon"><AppIcon name="device" size={18} /></div>
                 <h4>MacBook Pro</h4>
                 <p className="device-name">macOS Sonoma</p>
                 <div className="device-meta">
