@@ -1,3 +1,5 @@
+import AppIcon from '@/components/AppIcon';
+
 export default function Features() {
   return (
     <>
@@ -13,7 +15,7 @@ export default function Features() {
           {/* Feature 1: Spice Lock */}
           <div className="feature-detail">
             <div className="feature-detail-header">
-              <span className="feature-icon-large">🔐</span>
+              <span className="feature-icon-large"><AppIcon name="lock" size={22} /></span>
               <h2>The Spice Lock - 3 Layer Protection</h2>
             </div>
             <p className="feature-intro">
@@ -22,7 +24,7 @@ export default function Features() {
             
             <div className="feature-explanation">
               <div className="explanation-card">
-                <h3>🧂 Salt: Random Spice Unique to You</h3>
+                <h3>Salt: User-specific random entropy</h3>
                 <p>
                   Every user gets a unique 16-digit random number generated when creating their account. 
                   This salt is mixed with your password before encryption, ensuring that even if two users 
@@ -31,7 +33,7 @@ export default function Features() {
               </div>
 
               <div className="explanation-card">
-                <h3>🌶️ Pepper: Master Spice Only Server Knows</h3>
+                <h3>Pepper: Server-held secret keying material</h3>
                 <p>
                   The server adds its own secret ingredient that exists only on our secure servers. 
                   This master pepper is never transmitted to your browser, adding an extra layer of 
@@ -40,7 +42,7 @@ export default function Features() {
               </div>
 
               <div className="explanation-card">
-                <h3>🔄 How It Works</h3>
+                <h3>How It Works</h3>
                 <ul>
                   <li><strong>Registration:</strong> System generates random 16-digit salt → Mixes with your password → Browser generates pepper code → Combined for encryption</li>
                   <li><strong>Login:</strong> You enter your password → System sprinkles salt → Browser sprinkles pepper → Verification complete</li>
@@ -52,7 +54,7 @@ export default function Features() {
           {/* Feature 2: Mirror Maze */}
           <div className="feature-detail">
             <div className="feature-detail-header">
-              <span className="feature-icon-large">🪞</span>
+              <span className="feature-icon-large"><AppIcon name="shield" size={22} /></span>
               <h2>The Mirror Maze - 3 Fake Reflections</h2>
             </div>
             <p className="feature-intro">
@@ -98,7 +100,7 @@ export default function Features() {
           {/* Feature 3: Digital Passport */}
           <div className="feature-detail">
             <div className="feature-detail-header">
-              <span className="feature-icon-large">🛂</span>
+              <span className="feature-icon-large"><AppIcon name="globe" size={22} /></span>
               <h2>The Digital Passport</h2>
             </div>
             <p className="feature-intro">
@@ -107,7 +109,7 @@ export default function Features() {
             
             <div className="comparison-grid">
               <div className="comparison-card normal">
-                <h3>✅ Your Normal Passport</h3>
+                <h3>Verified Session Profile</h3>
                 <ul>
                   <li><strong>Location:</strong> Bangalore, India</li>
                   <li><strong>Device:</strong> Your registered laptop</li>
@@ -118,11 +120,11 @@ export default function Features() {
               </div>
 
               <div className="comparison-card suspicious">
-                <h3>⚠️ Suspicious Passport</h3>
+                <h3>High-Risk Session Profile</h3>
                 <ul>
                   <li><strong>Location:</strong> Moscow, Russia</li>
                   <li><strong>Device:</strong> Unknown smartphone</li>
-                  <li><strong>Time:</strong> 3:00 AM (Ghost time!)</li>
+                  <li><strong>Time:</strong> 3:00 AM (unusual activity window)</li>
                   <li><strong>Pattern:</strong> Unusual behavior</li>
                 </ul>
                 <div className="status-badge danger">Instant Block!</div>
@@ -142,7 +144,7 @@ export default function Features() {
           {/* Feature 4: Childhood Whisper */}
           <div className="feature-detail">
             <div className="feature-detail-header">
-              <span className="feature-icon-large">🤫</span>
+              <span className="feature-icon-large"><AppIcon name="scan" size={22} /></span>
               <h2>The Childhood Whisper</h2>
             </div>
             <p className="feature-intro">
@@ -191,7 +193,7 @@ export default function Features() {
           {/* Feature 5: Slow Motion Trap */}
           <div className="feature-detail">
             <div className="feature-detail-header">
-              <span className="feature-icon-large">⏱️</span>
+              <span className="feature-icon-large"><AppIcon name="timer" size={22} /></span>
               <h2>The Slow Motion Trap</h2>
             </div>
             <p className="feature-intro">
@@ -252,7 +254,7 @@ export default function Features() {
           {/* Feature 6: Device DNA */}
           <div className="feature-detail">
             <div className="feature-detail-header">
-              <span className="feature-icon-large">🧬</span>
+              <span className="feature-icon-large"><AppIcon name="dna" size={22} /></span>
               <h2>The Device DNA</h2>
             </div>
             <p className="feature-intro">
@@ -261,7 +263,7 @@ export default function Features() {
             
             <div className="dna-grid">
               <div className="dna-card">
-                <h4>🖥️ Screen Characteristics</h4>
+                <h4>Screen Characteristics</h4>
                 <ul>
                   <li>Resolution: 1920x1080</li>
                   <li>Color depth: 24-bit</li>
@@ -270,7 +272,7 @@ export default function Features() {
               </div>
 
               <div className="dna-card">
-                <h4>🌐 Browser Fingerprint</h4>
+                <h4>Browser Fingerprint</h4>
                 <ul>
                   <li>User agent string</li>
                   <li>Installed plugins</li>
@@ -279,7 +281,7 @@ export default function Features() {
               </div>
 
               <div className="dna-card">
-                <h4>🕐 Time Signature</h4>
+                <h4>Time Signature</h4>
                 <ul>
                   <li>Timezone: IST (UTC+5:30)</li>
                   <li>System time</li>
@@ -288,7 +290,7 @@ export default function Features() {
               </div>
 
               <div className="dna-card">
-                <h4>💻 Hardware Markers</h4>
+                <h4>Hardware Markers</h4>
                 <ul>
                   <li>CPU cores: 8</li>
                   <li>Memory: 16GB</li>
@@ -297,7 +299,7 @@ export default function Features() {
               </div>
 
               <div className="dna-card">
-                <h4>🎨 Canvas Fingerprint</h4>
+                <h4>Canvas Fingerprint</h4>
                 <ul>
                   <li>Rendering signature</li>
                   <li>Font rendering</li>
@@ -306,7 +308,7 @@ export default function Features() {
               </div>
 
               <div className="dna-card">
-                <h4>📡 Network Identity</h4>
+                <h4>Network Identity</h4>
                 <ul>
                   <li>IP address</li>
                   <li>Connection type</li>
@@ -328,7 +330,7 @@ export default function Features() {
           {/* Feature 7: Behavior Camera */}
           <div className="feature-detail">
             <div className="feature-detail-header">
-              <span className="feature-icon-large">📹</span>
+              <span className="feature-icon-large"><AppIcon name="camera" size={22} /></span>
               <h2>The Behavior Camera</h2>
             </div>
             <p className="feature-intro">
@@ -337,7 +339,7 @@ export default function Features() {
             
             <div className="behavior-comparison">
               <div className="behavior-card normal-user">
-                <h3>👤 Normal User Behavior</h3>
+                <h3>Normal User Behavior</h3>
                 <div className="behavior-pattern">
                   <div className="pattern-item">
                     <strong>Mouse Movement:</strong>
@@ -360,7 +362,7 @@ export default function Features() {
               </div>
 
               <div className="behavior-card hacker">
-                <h3>⚠️ Hacker Behavior</h3>
+                <h3>Suspicious User Behavior</h3>
                 <div className="behavior-pattern">
                   <div className="pattern-item">
                     <strong>Mouse Movement:</strong>
@@ -373,7 +375,7 @@ export default function Features() {
                   </div>
                   <div className="pattern-item">
                     <strong>Timing:</strong>
-                    <p>3:00 AM login (ghost time!)</p>
+                    <p>3:00 AM login during unusual operating hours</p>
                   </div>
                   <div className="pattern-item">
                     <strong>Amount Pattern:</strong>
@@ -404,7 +406,7 @@ export default function Features() {
           {/* Feature 8: Alert System */}
           <div className="feature-detail">
             <div className="feature-detail-header">
-              <span className="feature-icon-large">🚨</span>
+              <span className="feature-icon-large"><AppIcon name="alert" size={22} /></span>
               <h2>Alert System</h2>
             </div>
             <p className="feature-intro">
@@ -413,43 +415,43 @@ export default function Features() {
             
             <div className="alert-flow">
               <div className="alert-step critical">
-                <h3>🔴 Hacking Activity Confirmed</h3>
+                <h3>Security Incident Confirmed</h3>
                 <p>System detects unauthorized access attempt</p>
               </div>
 
               <div className="alert-actions">
                 <div className="alert-action">
-                  <div className="action-icon">📞</div>
+                  <div className="action-icon"><AppIcon name="phone" size={16} /></div>
                   <h4>GSM Call Alert</h4>
                   <p>Automated call to your registered mobile using GSM IoT module</p>
                 </div>
 
                 <div className="alert-action">
-                  <div className="action-icon">📱</div>
+                  <div className="action-icon"><AppIcon name="mobile" size={16} /></div>
                   <h4>SMS Notification</h4>
                   <p>Instant text message with intrusion details</p>
                 </div>
 
                 <div className="alert-action">
-                  <div className="action-icon">📧</div>
+                  <div className="action-icon"><AppIcon name="mail" size={16} /></div>
                   <h4>Email Alert</h4>
                   <p>Detailed security report sent to your email</p>
                 </div>
 
                 <div className="alert-action">
-                  <div className="action-icon">🔒</div>
+                  <div className="action-icon"><AppIcon name="lock" size={16} /></div>
                   <h4>Account Freeze</h4>
                   <p>Payment interface immediately locked until further notice</p>
                 </div>
 
                 <div className="alert-action">
-                  <div className="action-icon">👮</div>
+                  <div className="action-icon"><AppIcon name="shieldCheck" size={16} /></div>
                   <h4>Law Enforcement</h4>
                   <p>Evidence package sent to cybercrime authorities</p>
                 </div>
 
                 <div className="alert-action">
-                  <div className="action-icon">📊</div>
+                  <div className="action-icon"><AppIcon name="check" size={16} /></div>
                   <h4>Evidence Collection</h4>
                   <p>IP address, device info, behavior patterns logged</p>
                 </div>

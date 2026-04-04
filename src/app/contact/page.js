@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import AppIcon from '@/components/AppIcon';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -108,7 +109,7 @@ export default function Contact() {
               <h2>Get In Touch</h2>
               
               <div className="contact-method">
-                <div className="method-icon">📧</div>
+                <div className="method-icon"><AppIcon name="mail" size={18} /></div>
                 <div className="method-content">
                   <h3>Email</h3>
                   <p>support@payshield.com</p>
@@ -117,7 +118,7 @@ export default function Contact() {
               </div>
 
               <div className="contact-method">
-                <div className="method-icon">📞</div>
+                <div className="method-icon"><AppIcon name="phone" size={18} /></div>
                 <div className="method-content">
                   <h3>Phone</h3>
                   <p>+91 1800-123-4567</p>
@@ -126,7 +127,7 @@ export default function Contact() {
               </div>
 
               <div className="contact-method">
-                <div className="method-icon">💬</div>
+                <div className="method-icon"><AppIcon name="users" size={18} /></div>
                 <div className="method-content">
                   <h3>Live Chat</h3>
                   <p>Available 24/7</p>
@@ -135,7 +136,7 @@ export default function Contact() {
               </div>
 
               <div className="contact-method">
-                <div className="method-icon">📍</div>
+                <div className="method-icon"><AppIcon name="location" size={18} /></div>
                 <div className="method-content">
                   <h3>Office</h3>
                   <p>
@@ -150,10 +151,10 @@ export default function Contact() {
               <div className="social-links">
                 <h3>Follow Us</h3>
                 <div className="social-icons">
-                  <a href="#" className="social-icon">🔗 LinkedIn</a>
-                  <a href="#" className="social-icon">🐦 Twitter</a>
-                  <a href="#" className="social-icon">📘 Facebook</a>
-                  <a href="#" className="social-icon">📸 Instagram</a>
+                  <a href="#" className="social-icon"><AppIcon name="building" size={14} /> LinkedIn</a>
+                  <a href="#" className="social-icon"><AppIcon name="globe" size={14} /> X</a>
+                  <a href="#" className="social-icon"><AppIcon name="users" size={14} /> Facebook</a>
+                  <a href="#" className="social-icon"><AppIcon name="camera" size={14} /> Instagram</a>
                 </div>
               </div>
             </div>
@@ -241,8 +242,8 @@ export default function Contact() {
 
           {/* Emergency Contact */}
           <div className="emergency-section">
-            <div className="emergency-icon">🚨</div>
-            <h2>Emergency Security Hotline</h2>
+            <div className="emergency-icon"><AppIcon name="alert" size={22} /></div>
+            <h2>Security Incident Hotline</h2>
             <p>
               If you suspect unauthorized access to your account or notice suspicious activity, 
               contact our 24/7 security hotline immediately:

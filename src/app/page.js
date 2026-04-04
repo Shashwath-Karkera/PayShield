@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import FeatureCard from '@/components/FeatureCard';
+import AppIcon from '@/components/AppIcon';
 
 export default function Home() {
   return (
@@ -55,7 +56,7 @@ export default function Home() {
 
           <div className="features-grid">
             <FeatureCard
-              icon="🔐"
+              icon={<AppIcon name="lock" size={22} />}
               title="The Spice Lock"
               description="Triple-layer password encryption with salt, pepper, and cryptographic hashing"
               features={[
@@ -65,9 +66,9 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="🪞"
+              icon={<AppIcon name="shield" size={22} />}
               title="The Mirror Maze"
-              description="Decoy accounts that confuse attackers with fake balances"
+              description="Decoy-ledger architecture that contains suspicious sessions and protects real funds"
               features={[
                 "3 fake accounts with realistic balances",
                 "Real account hidden from intruders",
@@ -75,7 +76,7 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="🛂"
+              icon={<AppIcon name="globe" size={22} />}
               title="The Digital Passport"
               description="Advanced location and device verification for every transaction"
               features={[
@@ -85,9 +86,9 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="🤫"
+              icon={<AppIcon name="scan" size={22} />}
               title="The Childhood Whisper"
-              description="Blockchain-secured personal questions only you can answer"
+              description="Encrypted identity challenge layer for suspicious session recovery"
               features={[
                 "Encrypted on blockchain",
                 "Never stored on device",
@@ -95,7 +96,7 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="⏱️"
+              icon={<AppIcon name="timer" size={22} />}
               title="The Slow Motion Trap"
               description="Intelligent delay system during suspicious activities"
               features={[
@@ -105,7 +106,7 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="🧬"
+              icon={<AppIcon name="dna" size={22} />}
               title="The Device DNA"
               description="20+ unique device identifiers for foolproof authentication"
               features={[
@@ -115,7 +116,7 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="📹"
+              icon={<AppIcon name="camera" size={22} />}
               title="The Behavior Camera"
               description="AI-powered behavioral analytics monitoring user patterns"
               features={[
@@ -125,7 +126,7 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="🚨"
+              icon={<AppIcon name="alert" size={22} />}
               title="Alert System"
               description="Multi-channel instant notifications when threats are detected"
               features={[
