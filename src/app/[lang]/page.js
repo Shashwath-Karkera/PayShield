@@ -1,11 +1,15 @@
 import Link from 'next/link';
 import FeatureCard from '@/components/FeatureCard';
+<<<<<<< HEAD:src/app/[lang]/page.js
 import { getDictionary } from '@/i18n/getDictionary';
 
 export default async function Home(props) {
   const params = await props.params;
   const lang = params?.lang || 'en';
   const dict = await getDictionary(lang);
+=======
+import AppIcon from '@/components/AppIcon';
+>>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
 
   return (
     <div>
@@ -58,7 +62,51 @@ export default async function Home(props) {
 
           <div className="features-grid">
             <FeatureCard
+<<<<<<< HEAD:src/app/[lang]/page.js
               icon="???"
+=======
+              icon={<AppIcon name="lock" size={22} />}
+              title="The Spice Lock"
+              description="Triple-layer password encryption with salt, pepper, and cryptographic hashing"
+              features={[
+                "Random 16-digit salt per user",
+                "Master pepper key on server",
+                "Automatic mixing on login"
+              ]}
+            />
+            <FeatureCard
+              icon={<AppIcon name="shield" size={22} />}
+              title="The Mirror Maze"
+              description="Decoy-ledger architecture that contains suspicious sessions and protects real funds"
+              features={[
+                "3 fake accounts with realistic balances",
+                "Real account hidden from intruders",
+                "Automatic redirection system"
+              ]}
+            />
+            <FeatureCard
+              icon={<AppIcon name="globe" size={22} />}
+              title="The Digital Passport"
+              description="Advanced location and device verification for every transaction"
+              features={[
+                "Geographic anomaly detection",
+                "Device fingerprinting",
+                "Time-based analysis"
+              ]}
+            />
+            <FeatureCard
+              icon={<AppIcon name="scan" size={22} />}
+              title="The Childhood Whisper"
+              description="Encrypted identity challenge layer for suspicious session recovery"
+              features={[
+                "Encrypted on blockchain",
+                "Never stored on device",
+                "Multi-question verification"
+              ]}
+            />
+            <FeatureCard
+              icon={<AppIcon name="timer" size={22} />}
+>>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
               title="The Slow Motion Trap"
               description="Intelligent delay system during suspicious activities"
               features={[
@@ -68,7 +116,11 @@ export default async function Home(props) {
               ]}
             />
             <FeatureCard
+<<<<<<< HEAD:src/app/[lang]/page.js
               icon="??"
+=======
+              icon={<AppIcon name="dna" size={22} />}
+>>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
               title="The Device DNA"
               description="20+ unique device identifiers for foolproof authentication"
               features={[
@@ -78,7 +130,11 @@ export default async function Home(props) {
               ]}
             />
             <FeatureCard
+<<<<<<< HEAD:src/app/[lang]/page.js
               icon="??"
+=======
+              icon={<AppIcon name="camera" size={22} />}
+>>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
               title="The Behavior Camera"
               description="AI-powered behavioral analytics monitoring user patterns"
               features={[
@@ -88,7 +144,11 @@ export default async function Home(props) {
               ]}
             />
             <FeatureCard
+<<<<<<< HEAD:src/app/[lang]/page.js
               icon="??"
+=======
+              icon={<AppIcon name="alert" size={22} />}
+>>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
               title="Alert System"
               description="Multi-channel instant notifications when threats are detected"
               features={[

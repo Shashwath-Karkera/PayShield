@@ -1,3 +1,5 @@
+import AppIcon from '@/components/AppIcon';
+
 export default function About() {
   return (
     <>
@@ -33,7 +35,7 @@ export default function About() {
             <h2 className="section-title-small">Why We're Different</h2>
             <div className="difference-grid">
               <div className="difference-card">
-                <div className="difference-icon">🎯</div>
+                <div className="difference-icon"><AppIcon name="shield" size={18} /></div>
                 <h3>Multi-Layer Defense</h3>
                 <p>
                   Unlike single-point security systems, we deploy seven independent layers of 
@@ -42,7 +44,7 @@ export default function About() {
               </div>
 
               <div className="difference-card">
-                <div className="difference-icon">🧠</div>
+                <div className="difference-icon"><AppIcon name="spark" size={18} /></div>
                 <h3>AI-Powered Intelligence</h3>
                 <p>
                   Our machine learning algorithms learn your unique behavior patterns and can 
@@ -51,7 +53,7 @@ export default function About() {
               </div>
 
               <div className="difference-card">
-                <div className="difference-icon">🎭</div>
+                <div className="difference-icon"><AppIcon name="shieldCheck" size={18} /></div>
                 <h3>Deception Technology</h3>
                 <p>
                   We don't just block attackers - we deceive them with fake accounts and slow 
@@ -60,7 +62,7 @@ export default function About() {
               </div>
 
               <div className="difference-card">
-                <div className="difference-icon">⛓️</div>
+                <div className="difference-icon"><AppIcon name="lock" size={18} /></div>
                 <h3>Blockchain Security</h3>
                 <p>
                   Critical security data is encrypted and stored on blockchain, making it 
@@ -69,7 +71,7 @@ export default function About() {
               </div>
 
               <div className="difference-card">
-                <div className="difference-icon">🔬</div>
+                <div className="difference-icon"><AppIcon name="scan" size={18} /></div>
                 <h3>Advanced Cryptography</h3>
                 <p>
                   We use military-grade encryption with unique salt and pepper techniques, 
@@ -78,7 +80,7 @@ export default function About() {
               </div>
 
               <div className="difference-card">
-                <div className="difference-icon">⚡</div>
+                <div className="difference-icon"><AppIcon name="alert" size={18} /></div>
                 <h3>Real-Time Response</h3>
                 <p>
                   Our system doesn't just detect threats - it responds instantly with account 
@@ -145,25 +147,25 @@ export default function About() {
             </p>
             <div className="team-grid">
               <div className="team-card">
-                <div className="team-avatar">👨‍💼</div>
+                <div className="team-avatar"><AppIcon name="users" size={18} /></div>
                 <h3>Security Experts</h3>
                 <p>Former cybersecurity analysts from leading financial institutions</p>
               </div>
 
               <div className="team-card">
-                <div className="team-avatar">👩‍🔬</div>
+                <div className="team-avatar"><AppIcon name="scan" size={18} /></div>
                 <h3>Cryptographers</h3>
                 <p>PhD researchers specializing in advanced encryption techniques</p>
               </div>
 
               <div className="team-card">
-                <div className="team-avatar">👨‍💻</div>
+                <div className="team-avatar"><AppIcon name="device" size={18} /></div>
                 <h3>AI Engineers</h3>
                 <p>Machine learning specialists from top tech companies</p>
               </div>
 
               <div className="team-card">
-                <div className="team-avatar">👩‍⚖️</div>
+                <div className="team-avatar"><AppIcon name="check" size={18} /></div>
                 <h3>Compliance Officers</h3>
                 <p>Legal experts ensuring regulatory compliance</p>
               </div>
@@ -201,7 +203,7 @@ export default function About() {
             <h2 className="section-title-small">Our Values</h2>
             <div className="values-list">
               <div className="value-item">
-                <div className="value-icon">🔒</div>
+                <div className="value-icon"><AppIcon name="lock" size={18} /></div>
                 <div className="value-content">
                   <h3>Security First</h3>
                   <p>
@@ -212,7 +214,7 @@ export default function About() {
               </div>
 
               <div className="value-item">
-                <div className="value-icon">🎯</div>
+                <div className="value-icon"><AppIcon name="shield" size={18} /></div>
                 <div className="value-content">
                   <h3>Transparency</h3>
                   <p>
@@ -223,7 +225,7 @@ export default function About() {
               </div>
 
               <div className="value-item">
-                <div className="value-icon">🚀</div>
+                <div className="value-icon"><AppIcon name="spark" size={18} /></div>
                 <div className="value-content">
                   <h3>Innovation</h3>
                   <p>
@@ -234,7 +236,7 @@ export default function About() {
               </div>
 
               <div className="value-item">
-                <div className="value-icon">👥</div>
+                <div className="value-icon"><AppIcon name="users" size={18} /></div>
                 <div className="value-content">
                   <h3>User-Centric</h3>
                   <p>
