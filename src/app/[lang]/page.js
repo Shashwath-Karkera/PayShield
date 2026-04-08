@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import FeatureCard from '@/components/FeatureCard';
+import { getDictionary } from '@/i18n/getDictionary';
 
-export default function Home() {
+export default async function Home(props) {
+  const params = await props.params;
+  const lang = params?.lang || 'en';
+  const dict = await getDictionary(lang);
+
   return (
     <div>
       {/* Hero Section */}
@@ -9,34 +14,32 @@ export default function Home() {
         <div className="container">
           <div className="hero-content">
             <h1 className="hero-title">
-              Secure Your Payments with
-              <span className="gradient-text"> Military-Grade Protection</span>
+              {dict.home?.heroTitle1 || "Secure Your Payments with"}
+              <span className="gradient-text"> {dict.home?.heroTitle2 || "Military-Grade Protection"}</span>
             </h1>
             <p className="hero-subtitle">
-              PayShield combines advanced cryptography, AI-powered behavioral analytics, 
-              and multi-layer deception technology to protect your financial transactions 
-              from sophisticated cyber threats.
+              {dict.home?.heroSubtitle || "PayShield combines advanced cryptography..."}
             </p>
             <div className="hero-buttons">
-              <Link href="/register" className="btn btn-primary">
-                Get Started Free
+              <Link href={`/${lang}/register`} className="btn btn-primary">
+                {dict.home?.getStartedFree || "Get Started Free"}
               </Link>
-              <Link href="/features" className="btn btn-secondary">
-                Explore Features
+              <Link href={`/${lang}/features`} className="btn btn-secondary">
+                {dict.home?.exploreFeatures || "Explore Features"}
               </Link>
             </div>
             <div className="hero-stats">
               <div className="stat">
                 <div className="stat-value">99.9%</div>
-                <div className="stat-label">Threat Detection</div>
+                <div className="stat-label">{dict.home?.stats?.threatDetection || "Threat Detection"}</div>
               </div>
               <div className="stat">
                 <div className="stat-value">7-Layer</div>
-                <div className="stat-label">Security System</div>
+                <div className="stat-label">{dict.home?.stats?.securitySystem || "Security System"}</div>
               </div>
               <div className="stat">
                 <div className="stat-value">24/7</div>
-                <div className="stat-label">Real-time Monitoring</div>
+                <div className="stat-label">{dict.home?.stats?.realtimeMonitoring || "Real-time Monitoring"}</div>
               </div>
             </div>
           </div>
@@ -47,55 +50,15 @@ export default function Home() {
       <section className="features-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Advanced Security Features</h2>
+            <h2 className="section-title">{dict.home?.features?.title || "Advanced Security Features"}</h2>
             <p className="section-subtitle">
-              Seven layers of intelligent protection working in harmony to safeguard your assets
+              {dict.home?.features?.subtitle || "Seven layers of intelligent protection"}
             </p>
           </div>
 
           <div className="features-grid">
             <FeatureCard
-              icon="🔐"
-              title="The Spice Lock"
-              description="Triple-layer password encryption with salt, pepper, and cryptographic hashing"
-              features={[
-                "Random 16-digit salt per user",
-                "Master pepper key on server",
-                "Automatic mixing on login"
-              ]}
-            />
-            <FeatureCard
-              icon="🪞"
-              title="The Mirror Maze"
-              description="Decoy accounts that confuse attackers with fake balances"
-              features={[
-                "3 fake accounts with realistic balances",
-                "Real account hidden from intruders",
-                "Automatic redirection system"
-              ]}
-            />
-            <FeatureCard
-              icon="🛂"
-              title="The Digital Passport"
-              description="Advanced location and device verification for every transaction"
-              features={[
-                "Geographic anomaly detection",
-                "Device fingerprinting",
-                "Time-based analysis"
-              ]}
-            />
-            <FeatureCard
-              icon="🤫"
-              title="The Childhood Whisper"
-              description="Blockchain-secured personal questions only you can answer"
-              features={[
-                "Encrypted on blockchain",
-                "Never stored on device",
-                "Multi-question verification"
-              ]}
-            />
-            <FeatureCard
-              icon="⏱️"
+              icon="???"
               title="The Slow Motion Trap"
               description="Intelligent delay system during suspicious activities"
               features={[
@@ -105,7 +68,7 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="🧬"
+              icon="??"
               title="The Device DNA"
               description="20+ unique device identifiers for foolproof authentication"
               features={[
@@ -115,7 +78,7 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="📹"
+              icon="??"
               title="The Behavior Camera"
               description="AI-powered behavioral analytics monitoring user patterns"
               features={[
@@ -125,7 +88,7 @@ export default function Home() {
               ]}
             />
             <FeatureCard
-              icon="🚨"
+              icon="??"
               title="Alert System"
               description="Multi-channel instant notifications when threats are detected"
               features={[
@@ -137,8 +100,8 @@ export default function Home() {
           </div>
 
           <div className="cta-center">
-            <Link href="/features" className="btn btn-primary">
-              Learn More About Our Security
+            <Link href={`/${lang}/features`} className="btn btn-primary">
+              {dict.home?.exploreFeatures || "Learn More About Our Security"}
             </Link>
           </div>
         </div>
@@ -147,7 +110,7 @@ export default function Home() {
       {/* How It Works */}
       <section className="how-it-works">
         <div className="container">
-          <h2 className="section-title">How PayShield Protects You</h2>
+          <h2 className="section-title">{dict.home?.howItWorksTitle || "How PayShield Protects You"}</h2>
           <div className="steps-grid">
             <div className="step">
               <div className="step-number">1</div>
@@ -179,8 +142,8 @@ export default function Home() {
           <div className="cta-box">
             <h2>Ready to Experience Unbreakable Security?</h2>
             <p>Join thousands of users who trust PayShield to protect their financial future</p>
-            <Link href="/register" className="btn btn-large">
-              Start Your Free Trial
+            <Link href={`/${lang}/register`} className="btn btn-large">
+              {dict.home?.getStartedFree || "Start Your Free Trial"}
             </Link>
           </div>
         </div>
