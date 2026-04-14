@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { encryptValue, decryptValue } from '@/lib/security/crypto';
+import { requireSession } from '@/lib/auth/session';
 
 const createSchema = z.object({
   userId: z.string().min(1),
@@ -16,6 +17,11 @@ export async function POST(request) {
     const body = await request.json();
     const data = createSchema.parse(body);
 
+    const auth = await requireSession(request, data.userId);
+    if (!auth.ok) {
+      return auth.response;
+    }
+
     const payload = encryptValue(
       JSON.stringify({
         accountNumber: data.accountNumber,
@@ -24,13 +30,22 @@ export async function POST(request) {
       })
     );
 
-    const saved = await prisma.bankCredential.create({
-      data: {
-        userId: data.userId,
-        bankName: data.bankName,
-        accountHolderName: data.accountHolderName,
-        encryptedPayload: payload
-      }
+    const saved = await prisma.$transaction(async (tx) => {
+      const created = await tx.bankCredential.create({
+        data: {
+          userId: data.userId,
+          bankName: data.bankName,
+          accountHolderName: data.accountHolderName,
+          encryptedPayload: payload
+        }
+      });
+
+      await tx.user.update({
+        where: { id: data.userId },
+        data: { bankOnboardingCompleted: true }
+      });
+
+      return created;
     });
 
     return Response.json(
@@ -62,6 +77,11 @@ export async function GET(request) {
 
     if (!userId) {
       return Response.json({ error: 'userId is required.' }, { status: 400 });
+    }
+
+    const auth = await requireSession(request, userId);
+    if (!auth.ok) {
+      return auth.response;
     }
 
     const records = await prisma.bankCredential.findMany({
