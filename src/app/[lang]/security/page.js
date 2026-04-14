@@ -1,14 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import AppIcon from '@/components/AppIcon';
 
 export default function Security() {
+  const params = useParams();
+  const currentLang = params?.lang || 'en';
+  const [dict, setDict] = useState({});
   const [securityQuestions, setSecurityQuestions] = useState({
     motherNickname: '',
     firstPetName: ''
   });
+  const security = dict.security || {};
+  const common = dict.common || {};
+
+  useEffect(() => {
+    import(`@/i18n/dictionaries/${currentLang}.json`)
+      .then((module) => setDict(module.default || {}))
+      .catch(() => import('@/i18n/dictionaries/en.json').then((m) => setDict(m.default || {})));
+  }, [currentLang]);
 
   const handleQuestionChange = (e) => {
     setSecurityQuestions({
@@ -27,73 +39,54 @@ export default function Security() {
       <div className="page-container">
         <div className="container-narrow">
           <div className="page-header">
-            <h1 className="page-title">Security Settings</h1>
-            <p className="page-subtitle">
-              Manage your security features and protection settings
-            </p>
+            <h1 className="page-title">{security.pageTitle || 'Security Settings'}</h1>
+            <p className="page-subtitle">{security.pageSubtitle || 'Manage your security features and protection settings'}</p>
           </div>
 
-          {/* Security Score */}
           <div className="security-score-card">
             <div className="score-content">
-              <h2>Your Security Score</h2>
+              <h2>{security.scoreTitle || 'Your Security Score'}</h2>
               <div className="score-circle">
                 <div className="score-value">98%</div>
               </div>
-              <p className="score-status excellent">Excellent Protection</p>
+              <p className="score-status excellent">{security.scoreStatus || 'Excellent Protection'}</p>
             </div>
             <div className="score-breakdown">
-              <h3>Score Breakdown</h3>
+              <h3>{security.scoreBreakdown || 'Score Breakdown'}</h3>
               <div className="score-item">
-                <span>Password Strength</span>
-                <div className="score-bar">
-                  <div className="score-fill" style={{width: '100%'}}></div>
-                </div>
+                <span>{security.passwordStrength || 'Password Strength'}</span>
+                <div className="score-bar"><div className="score-fill" style={{ width: '100%' }}></div></div>
                 <span>100%</span>
               </div>
               <div className="score-item">
-                <span>Device Trust</span>
-                <div className="score-bar">
-                  <div className="score-fill" style={{width: '95%'}}></div>
-                </div>
+                <span>{security.deviceTrust || 'Device Trust'}</span>
+                <div className="score-bar"><div className="score-fill" style={{ width: '95%' }}></div></div>
                 <span>95%</span>
               </div>
               <div className="score-item">
-                <span>Behavioral Pattern</span>
-                <div className="score-bar">
-                  <div className="score-fill" style={{width: '98%'}}></div>
-                </div>
+                <span>{security.behavioralPattern || 'Behavioral Pattern'}</span>
+                <div className="score-bar"><div className="score-fill" style={{ width: '98%' }}></div></div>
                 <span>98%</span>
               </div>
             </div>
           </div>
 
-          {/* Security Layers Status */}
           <div className="section">
-            <h2 className="section-title-small">Security Layers Status</h2>
-            
+            <h2 className="section-title-small">{security.layersTitle || 'Security Layers Status'}</h2>
+
             <div className="security-layer">
               <div className="layer-header">
                 <div className="layer-info">
                   <span className="layer-icon"><AppIcon name="lock" size={16} /></span>
-                  <div>
-                    <h3>The Spice Lock</h3>
-                    <p>Triple-layer password encryption</p>
-                  </div>
+                  <div><h3>{security.spiceLockTitle || 'The Spice Lock'}</h3><p>{security.spiceLockDesc || 'Triple-layer password encryption'}</p></div>
                 </div>
-                <span className="status-badge success">Active</span>
+                <span className="status-badge success">{common.active || 'Active'}</span>
               </div>
               <div className="layer-details">
-                <div className="detail-item">
-                  <strong>Salt:</strong> Unique 16-digit random key
-                </div>
-                <div className="detail-item">
-                  <strong>Pepper:</strong> Master server key applied
-                </div>
-                <div className="detail-item">
-                  <strong>Last Updated:</strong> Feb 1, 2026
-                </div>
-                <button className="btn btn-secondary btn-small">Change Password</button>
+                <div className="detail-item">{security.spiceLockSalt || 'Salt: Unique 16-digit random key'}</div>
+                <div className="detail-item">{security.spiceLockPepper || 'Pepper: Master server key applied'}</div>
+                <div className="detail-item">{security.spiceLockLastUpdate || 'Last Updated: Feb 1, 2026'}</div>
+                <button className="btn btn-secondary btn-small">{security.changePassword || 'Change Password'}</button>
               </div>
             </div>
 
@@ -101,23 +94,14 @@ export default function Security() {
               <div className="layer-header">
                 <div className="layer-info">
                   <span className="layer-icon"><AppIcon name="shield" size={16} /></span>
-                  <div>
-                    <h3>The Mirror Maze</h3>
-                    <p>Decoy accounts protection</p>
-                  </div>
+                  <div><h3>{security.mirrorMazeTitle || 'The Mirror Maze'}</h3><p>{security.mirrorMazeDesc || 'Decoy accounts protection'}</p></div>
                 </div>
-                <span className="status-badge success">Active</span>
+                <span className="status-badge success">{common.active || 'Active'}</span>
               </div>
               <div className="layer-details">
-                <div className="detail-item">
-                  <strong>Decoy Accounts:</strong> 3 active fake accounts
-                </div>
-                <div className="detail-item">
-                  <strong>Success Rate:</strong> 100% of attacks redirected
-                </div>
-                <div className="detail-item">
-                  <strong>Last Triggered:</strong> 3 days ago
-                </div>
+                <div className="detail-item">{security.mirrorMazeDecoys || 'Decoy Accounts: 3 active fake accounts'}</div>
+                <div className="detail-item">{security.mirrorMazeSuccess || 'Success Rate: 100% of attacks redirected'}</div>
+                <div className="detail-item">{security.mirrorMazeTriggered || 'Last Triggered: 3 days ago'}</div>
               </div>
             </div>
 
@@ -125,23 +109,14 @@ export default function Security() {
               <div className="layer-header">
                 <div className="layer-info">
                   <span className="layer-icon"><AppIcon name="globe" size={16} /></span>
-                  <div>
-                    <h3>The Digital Passport</h3>
-                    <p>Location and device verification</p>
-                  </div>
+                  <div><h3>{security.digitalPassportTitle || 'The Digital Passport'}</h3><p>{security.digitalPassportDesc || 'Location and device verification'}</p></div>
                 </div>
-                <span className="status-badge success">Active</span>
+                <span className="status-badge success">{common.active || 'Active'}</span>
               </div>
               <div className="layer-details">
-                <div className="detail-item">
-                  <strong>Current Location:</strong> Bangalore, India
-                </div>
-                <div className="detail-item">
-                  <strong>Allowed Regions:</strong> India, Nepal, Bhutan, France
-                </div>
-                <div className="detail-item">
-                  <strong>Blocked Attempts:</strong> 2 this month
-                </div>
+                <div className="detail-item">{security.digitalPassportLocation || 'Current Location: Bangalore, India'}</div>
+                <div className="detail-item">{security.digitalPassportRegions || 'Allowed Regions: India, Nepal, Bhutan, France'}</div>
+                <div className="detail-item">{security.digitalPassportBlocked || 'Blocked Attempts: 2 this month'}</div>
               </div>
             </div>
 
@@ -149,25 +124,16 @@ export default function Security() {
               <div className="layer-header">
                 <div className="layer-info">
                   <span className="layer-icon"><AppIcon name="scan" size={16} /></span>
-                  <div>
-                    <h3>The Childhood Whisper</h3>
-                    <p>Blockchain-secured personal verification</p>
-                  </div>
+                  <div><h3>{security.childhoodWhisperTitle || 'The Childhood Whisper'}</h3><p>{security.childhoodWhisperDesc || 'Blockchain-secured personal verification'}</p></div>
                 </div>
-                <span className="status-badge success">Active</span>
+                <span className="status-badge success">{common.active || 'Active'}</span>
               </div>
               <div className="layer-details">
-                <div className="detail-item">
-                  <strong>Storage:</strong> Encrypted on blockchain
-                </div>
-                <div className="detail-item">
-                  <strong>Questions Set:</strong> 2 security questions configured
-                </div>
-                <div className="detail-item">
-                  <strong>Last Verified:</strong> 1 day ago
-                </div>
-                <button className="btn btn-secondary btn-small" onClick={() => document.getElementById('questions-form').scrollIntoView({behavior: 'smooth'})}>
-                  Update Questions
+                <div className="detail-item">{security.childhoodWhisperStorage || 'Storage: Encrypted on blockchain'}</div>
+                <div className="detail-item">{security.childhoodWhisperQuestions || 'Questions Set: 2 security questions configured'}</div>
+                <div className="detail-item">{security.childhoodWhisperVerified || 'Last Verified: 1 day ago'}</div>
+                <button className="btn btn-secondary btn-small" onClick={() => document.getElementById('questions-form').scrollIntoView({ behavior: 'smooth' })}>
+                  {security.updateQuestions || 'Update Questions'}
                 </button>
               </div>
             </div>
@@ -176,23 +142,14 @@ export default function Security() {
               <div className="layer-header">
                 <div className="layer-info">
                   <span className="layer-icon"><AppIcon name="timer" size={16} /></span>
-                  <div>
-                    <h3>The Slow Motion Trap</h3>
-                    <p>Intelligent delay during threats</p>
-                  </div>
+                  <div><h3>{security.slowMotionTrapTitle || 'The Slow Motion Trap'}</h3><p>{security.slowMotionTrapDesc || 'Intelligent delay during threats'}</p></div>
                 </div>
-                <span className="status-badge success">Ready</span>
+                <span className="status-badge success">{common.ready || 'Ready'}</span>
               </div>
               <div className="layer-details">
-                <div className="detail-item">
-                  <strong>Delay Duration:</strong> 30 seconds
-                </div>
-                <div className="detail-item">
-                  <strong>Times Activated:</strong> 1 this month
-                </div>
-                <div className="detail-item">
-                  <strong>Success Rate:</strong> 100% threats neutralized
-                </div>
+                <div className="detail-item">{security.slowMotionTrapDelay || 'Delay Duration: 30 seconds'}</div>
+                <div className="detail-item">{security.slowMotionTrapActivated || 'Times Activated: 1 this month'}</div>
+                <div className="detail-item">{security.slowMotionTrapSuccess || 'Success Rate: 100% threats neutralized'}</div>
               </div>
             </div>
 
@@ -200,26 +157,15 @@ export default function Security() {
               <div className="layer-header">
                 <div className="layer-info">
                   <span className="layer-icon"><AppIcon name="dna" size={16} /></span>
-                  <div>
-                    <h3>The Device DNA</h3>
-                    <p>20+ unique device identifiers</p>
-                  </div>
+                  <div><h3>{security.deviceDNATitle || 'The Device DNA'}</h3><p>{security.deviceDNADesc || '20+ unique device identifiers'}</p></div>
                 </div>
-                <span className="status-badge success">Active</span>
+                <span className="status-badge success">{common.active || 'Active'}</span>
               </div>
               <div className="layer-details">
-                <div className="detail-item">
-                  <strong>Trusted Devices:</strong> 3 devices registered
-                </div>
-                <div className="detail-item">
-                  <strong>Current Device:</strong> Dell XPS 15 (Trusted)
-                </div>
-                <div className="detail-item">
-                  <strong>Unknown Devices Blocked:</strong> 5 this month
-                </div>
-                <Link href="/dashboard#devices" className="btn btn-secondary btn-small">
-                  Manage Devices
-                </Link>
+                <div className="detail-item">{security.deviceDNATrusted || 'Trusted Devices: 3 devices registered'}</div>
+                <div className="detail-item">{security.deviceDNACurrent || 'Current Device: Dell XPS 15 (Trusted)'}</div>
+                <div className="detail-item">{security.deviceDNABlocked || 'Unknown Devices Blocked: 5 this month'}</div>
+                <Link href={`/${currentLang}/dashboard#devices`} className="btn btn-secondary btn-small">{security.manageDevices || 'Manage Devices'}</Link>
               </div>
             </div>
 
@@ -227,23 +173,14 @@ export default function Security() {
               <div className="layer-header">
                 <div className="layer-info">
                   <span className="layer-icon"><AppIcon name="camera" size={16} /></span>
-                  <div>
-                    <h3>The Behavior Camera</h3>
-                    <p>AI-powered behavioral analytics</p>
-                  </div>
+                  <div><h3>{security.behaviorCameraTitle || 'The Behavior Camera'}</h3><p>{security.behaviorCameraDesc || 'AI-powered behavioral analytics'}</p></div>
                 </div>
-                <span className="status-badge success">Learning</span>
+                <span className="status-badge success">{common.learning || 'Learning'}</span>
               </div>
               <div className="layer-details">
-                <div className="detail-item">
-                  <strong>AI Learning Status:</strong> 87% pattern recognition accuracy
-                </div>
-                <div className="detail-item">
-                  <strong>Patterns Tracked:</strong> Mouse movement, transaction timing, amounts
-                </div>
-                <div className="detail-item">
-                  <strong>Anomalies Detected:</strong> 2 this week
-                </div>
+                <div className="detail-item">{security.behaviorCameraStatus || 'AI Learning Status: 87% pattern recognition accuracy'}</div>
+                <div className="detail-item">{security.behaviorCameraPatterns || 'Patterns Tracked: Mouse movement, transaction timing, amounts'}</div>
+                <div className="detail-item">{security.behaviorCameraAnomalies || 'Anomalies Detected: 2 this week'}</div>
               </div>
             </div>
 
@@ -251,132 +188,82 @@ export default function Security() {
               <div className="layer-header">
                 <div className="layer-info">
                   <span className="layer-icon"><AppIcon name="alert" size={16} /></span>
-                  <div>
-                    <h3>Alert System</h3>
-                    <p>Multi-channel threat notifications</p>
-                  </div>
+                  <div><h3>{security.alertSystemTitle || 'Alert System'}</h3><p>{security.alertSystemDesc || 'Multi-channel threat notifications'}</p></div>
                 </div>
-                <span className="status-badge success">Active</span>
+                <span className="status-badge success">{common.active || 'Active'}</span>
               </div>
               <div className="layer-details">
-                <div className="detail-item">
-                  <strong>GSM Alert:</strong> +91-XXXXX-XXXXX
-                </div>
-                <div className="detail-item">
-                  <strong>Email Alert:</strong> john.doe@example.com
-                </div>
-                <div className="detail-item">
-                  <strong>Alerts Sent:</strong> 3 this month
-                </div>
-                <button className="btn btn-secondary btn-small">Update Contact Info</button>
+                <div className="detail-item">{security.alertSystemGSM || 'GSM Alert: +91-XXXXX-XXXXX'}</div>
+                <div className="detail-item">{security.alertSystemEmail || 'Email Alert: john.doe@example.com'}</div>
+                <div className="detail-item">{security.alertSystemSent || 'Alerts Sent: 3 this month'}</div>
+                <button className="btn btn-secondary btn-small">{security.updateContactInfo || 'Update Contact Info'}</button>
               </div>
             </div>
           </div>
 
-          {/* Update Security Questions */}
           <div className="section" id="questions-form">
-            <h2 className="section-title-small">Update Security Questions</h2>
-            <div className="info-box">
-              <p>
-                <strong><AppIcon name="lock" size={14} /> Blockchain Protection:</strong> These answers are encrypted and stored on blockchain. 
-                They will never be accessible from your browser or device.
-              </p>
-            </div>
-
+            <h2 className="section-title-small">{security.updateQuestionsTitle || 'Update Security Questions'}</h2>
+            <div className="info-box"><p>{security.updateQuestionsInfo || 'Blockchain Protection: These answers are encrypted and stored on blockchain. They will never be accessible from your browser or device.'}</p></div>
             <form onSubmit={handleSaveQuestions} className="security-form">
               <div className="form-group">
-                <label htmlFor="motherNickname">What did your mother call you?</label>
-                <input
-                  type="text"
-                  id="motherNickname"
-                  name="motherNickname"
-                  value={securityQuestions.motherNickname}
-                  onChange={handleQuestionChange}
-                  placeholder="Enter new answer"
-                />
+                <label htmlFor="motherNickname">{security.question1 || 'What did your mother call you?'}</label>
+                <input type="text" id="motherNickname" name="motherNickname" value={securityQuestions.motherNickname} onChange={handleQuestionChange} placeholder={security.question1Placeholder || 'Enter new answer'} />
               </div>
-
               <div className="form-group">
-                <label htmlFor="firstPetName">What was your first pet's name?</label>
-                <input
-                  type="text"
-                  id="firstPetName"
-                  name="firstPetName"
-                  value={securityQuestions.firstPetName}
-                  onChange={handleQuestionChange}
-                  placeholder="Enter new answer"
-                />
+                <label htmlFor="firstPetName">{security.question2 || "What was your first pet's name?"}</label>
+                <input type="text" id="firstPetName" name="firstPetName" value={securityQuestions.firstPetName} onChange={handleQuestionChange} placeholder={security.question2Placeholder || 'Enter new answer'} />
               </div>
-
-              <button type="submit" className="btn btn-primary">
-                Save Security Questions
-              </button>
+              <button type="submit" className="btn btn-primary">{security.saveQuestions || 'Save Security Questions'}</button>
             </form>
           </div>
 
-          {/* Two-Factor Authentication */}
           <div className="section">
-            <h2 className="section-title-small">Additional Security Options</h2>
-            
+            <h2 className="section-title-small">{security.additionalTitle || 'Additional Security Options'}</h2>
             <div className="option-card">
               <div className="option-info">
-                <h3><AppIcon name="mobile" size={14} /> Two-Factor Authentication (2FA)</h3>
-                <p>Add an extra layer of security with SMS or authenticator app</p>
+                <h3><AppIcon name="mobile" size={14} /> {security.twoFactorTitle || 'Two-Factor Authentication (2FA)'}</h3>
+                <p>{security.twoFactorDesc || 'Add an extra layer of security with SMS or authenticator app'}</p>
               </div>
-              <button className="btn btn-secondary">Enable 2FA</button>
+              <button className="btn btn-secondary">{security.enableTwoFactor || 'Enable 2FA'}</button>
             </div>
-
             <div className="option-card">
               <div className="option-info">
-                <h3><AppIcon name="bell" size={14} /> Transaction Notifications</h3>
-                <p>Receive instant alerts for every transaction</p>
+                <h3><AppIcon name="bell" size={14} /> {security.transactionNotifTitle || 'Transaction Notifications'}</h3>
+                <p>{security.transactionNotifDesc || 'Receive instant alerts for every transaction'}</p>
               </div>
-              <label className="toggle-switch">
-                <input type="checkbox" defaultChecked />
-                <span className="toggle-slider"></span>
-              </label>
+              <label className="toggle-switch"><input type="checkbox" defaultChecked /><span className="toggle-slider"></span></label>
             </div>
-
             <div className="option-card">
               <div className="option-info">
-                <h3><AppIcon name="globe" size={14} /> Geographic Restrictions</h3>
-                <p>Automatically block transactions from unauthorized countries</p>
+                <h3><AppIcon name="globe" size={14} /> {security.geoRestrictTitle || 'Geographic Restrictions'}</h3>
+                <p>{security.geoRestrictDesc || 'Automatically block transactions from unauthorized countries'}</p>
               </div>
-              <label className="toggle-switch">
-                <input type="checkbox" defaultChecked />
-                <span className="toggle-slider"></span>
-              </label>
+              <label className="toggle-switch"><input type="checkbox" defaultChecked /><span className="toggle-slider"></span></label>
             </div>
-
             <div className="option-card">
               <div className="option-info">
-                <h3><AppIcon name="timer" size={14} /> Time-Based Restrictions</h3>
-                <p>Block transactions during unusual hours (e.g., 12 AM - 6 AM)</p>
+                <h3><AppIcon name="timer" size={14} /> {security.timeRestrictTitle || 'Time-Based Restrictions'}</h3>
+                <p>{security.timeRestrictDesc || 'Block transactions during unusual hours (e.g., 12 AM - 6 AM)'}</p>
               </div>
-              <label className="toggle-switch">
-                <input type="checkbox" />
-                <span className="toggle-slider"></span>
-              </label>
+              <label className="toggle-switch"><input type="checkbox" /><span className="toggle-slider"></span></label>
             </div>
           </div>
 
-          {/* Danger Zone */}
           <div className="section danger-zone">
-            <h2 className="section-title-small">Danger Zone</h2>
+            <h2 className="section-title-small">{security.dangerZoneTitle || 'Danger Zone'}</h2>
             <div className="danger-card">
               <div className="danger-info">
-                <h3><AppIcon name="settings" size={14} /> Reset All Security Settings</h3>
-                <p>This will reset all security features to default settings</p>
+                <h3><AppIcon name="settings" size={14} /> {security.resetSettingsTitle || 'Reset All Security Settings'}</h3>
+                <p>{security.resetSettingsDesc || 'This will reset all security features to default settings'}</p>
               </div>
-              <button className="btn btn-danger">Reset Settings</button>
+              <button className="btn btn-danger">{security.resetButton || 'Reset Settings'}</button>
             </div>
-
             <div className="danger-card">
               <div className="danger-info">
-                <h3><AppIcon name="alert" size={14} /> Delete Account</h3>
-                <p>Permanently delete your PayShield account and all data</p>
+                <h3><AppIcon name="alert" size={14} /> {security.deleteAccountTitle || 'Delete Account'}</h3>
+                <p>{security.deleteAccountDesc || 'Permanently delete your PayShield account and all data'}</p>
               </div>
-              <button className="btn btn-danger">Delete Account</button>
+              <button className="btn btn-danger">{security.deleteButton || 'Delete Account'}</button>
             </div>
           </div>
         </div>

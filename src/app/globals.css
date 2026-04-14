@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* ===== CSS Variables ===== */
 :root {
   --primary-color: #2563eb;
@@ -151,7 +153,7 @@ a {
 
 /* ===== Footer Styles ===== */
 .footer {
-  background: #1e293b;
+  background: hsl(335, 52%, 6%);
   color: #e2e8f0;
   padding: 3rem 0 1rem;
   margin-top: 5rem;

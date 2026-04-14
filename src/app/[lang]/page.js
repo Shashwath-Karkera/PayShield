@@ -1,15 +1,14 @@
 import Link from 'next/link';
 import FeatureCard from '@/components/FeatureCard';
-<<<<<<< HEAD:src/app/[lang]/page.js
 import { getDictionary } from '@/i18n/getDictionary';
+import AppIcon from '@/components/AppIcon';
 
 export default async function Home(props) {
   const params = await props.params;
   const lang = params?.lang || 'en';
   const dict = await getDictionary(lang);
-=======
-import AppIcon from '@/components/AppIcon';
->>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
+  const featureCards = dict.home?.featureCards || {};
+  const steps = dict.home?.steps || {};
 
   return (
     <div>
@@ -62,99 +61,83 @@ import AppIcon from '@/components/AppIcon';
 
           <div className="features-grid">
             <FeatureCard
-<<<<<<< HEAD:src/app/[lang]/page.js
-              icon="???"
-=======
               icon={<AppIcon name="lock" size={22} />}
-              title="The Spice Lock"
-              description="Triple-layer password encryption with salt, pepper, and cryptographic hashing"
+              title={featureCards.spiceLock?.title || "The Spice Lock"}
+              description={featureCards.spiceLock?.description || "Triple-layer password encryption with salt, pepper, and cryptographic hashing"}
               features={[
-                "Random 16-digit salt per user",
-                "Master pepper key on server",
-                "Automatic mixing on login"
+                featureCards.spiceLock?.feature1 || "Random 16-digit salt per user",
+                featureCards.spiceLock?.feature2 || "Master pepper key on server",
+                featureCards.spiceLock?.feature3 || "Automatic mixing on login"
               ]}
             />
             <FeatureCard
               icon={<AppIcon name="shield" size={22} />}
-              title="The Mirror Maze"
-              description="Decoy-ledger architecture that contains suspicious sessions and protects real funds"
+              title={featureCards.mirrorMaze?.title || "The Mirror Maze"}
+              description={featureCards.mirrorMaze?.description || "Decoy-ledger architecture that contains suspicious sessions and protects real funds"}
               features={[
-                "3 fake accounts with realistic balances",
-                "Real account hidden from intruders",
-                "Automatic redirection system"
+                featureCards.mirrorMaze?.feature1 || "3 fake accounts with realistic balances",
+                featureCards.mirrorMaze?.feature2 || "Real account hidden from intruders",
+                featureCards.mirrorMaze?.feature3 || "Automatic redirection system"
               ]}
             />
             <FeatureCard
               icon={<AppIcon name="globe" size={22} />}
-              title="The Digital Passport"
-              description="Advanced location and device verification for every transaction"
+              title={featureCards.digitalPassport?.title || "The Digital Passport"}
+              description={featureCards.digitalPassport?.description || "Advanced location and device verification for every transaction"}
               features={[
-                "Geographic anomaly detection",
-                "Device fingerprinting",
-                "Time-based analysis"
+                featureCards.digitalPassport?.feature1 || "Geographic anomaly detection",
+                featureCards.digitalPassport?.feature2 || "Device fingerprinting",
+                featureCards.digitalPassport?.feature3 || "Time-based analysis"
               ]}
             />
             <FeatureCard
               icon={<AppIcon name="scan" size={22} />}
-              title="The Childhood Whisper"
-              description="Encrypted identity challenge layer for suspicious session recovery"
+              title={featureCards.childhoodWhisper?.title || "The Childhood Whisper"}
+              description={featureCards.childhoodWhisper?.description || "Encrypted identity challenge layer for suspicious session recovery"}
               features={[
-                "Encrypted on blockchain",
-                "Never stored on device",
-                "Multi-question verification"
+                featureCards.childhoodWhisper?.feature1 || "Encrypted on blockchain",
+                featureCards.childhoodWhisper?.feature2 || "Never stored on device",
+                featureCards.childhoodWhisper?.feature3 || "Multi-question verification"
               ]}
             />
             <FeatureCard
               icon={<AppIcon name="timer" size={22} />}
->>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
-              title="The Slow Motion Trap"
-              description="Intelligent delay system during suspicious activities"
+              title={featureCards.slowMotionTrap?.title || "The Slow Motion Trap"}
+              description={featureCards.slowMotionTrap?.description || "Intelligent delay system during suspicious activities"}
               features={[
-                "30-second processing delay",
-                "Real-time user alerts",
-                "Evidence collection mode"
+                featureCards.slowMotionTrap?.feature1 || "30-second processing delay",
+                featureCards.slowMotionTrap?.feature2 || "Real-time user alerts",
+                featureCards.slowMotionTrap?.feature3 || "Evidence collection mode"
               ]}
             />
             <FeatureCard
-<<<<<<< HEAD:src/app/[lang]/page.js
-              icon="??"
-=======
               icon={<AppIcon name="dna" size={22} />}
->>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
-              title="The Device DNA"
-              description="20+ unique device identifiers for foolproof authentication"
+              title={featureCards.deviceDNA?.title || "The Device DNA"}
+              description={featureCards.deviceDNA?.description || "20+ unique device identifiers for foolproof authentication"}
               features={[
-                "Screen resolution tracking",
-                "Browser fingerprinting",
-                "Timezone verification"
+                featureCards.deviceDNA?.feature1 || "Screen resolution tracking",
+                featureCards.deviceDNA?.feature2 || "Browser fingerprinting",
+                featureCards.deviceDNA?.feature3 || "Timezone verification"
               ]}
             />
             <FeatureCard
-<<<<<<< HEAD:src/app/[lang]/page.js
-              icon="??"
-=======
               icon={<AppIcon name="camera" size={22} />}
->>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
-              title="The Behavior Camera"
-              description="AI-powered behavioral analytics monitoring user patterns"
+              title={featureCards.behaviorCamera?.title || "The Behavior Camera"}
+              description={featureCards.behaviorCamera?.description || "AI-powered behavioral analytics monitoring user patterns"}
               features={[
-                "Mouse movement tracking",
-                "Transaction pattern analysis",
-                "Anomaly detection AI"
+                featureCards.behaviorCamera?.feature1 || "Mouse movement tracking",
+                featureCards.behaviorCamera?.feature2 || "Transaction pattern analysis",
+                featureCards.behaviorCamera?.feature3 || "Anomaly detection AI"
               ]}
             />
             <FeatureCard
-<<<<<<< HEAD:src/app/[lang]/page.js
-              icon="??"
-=======
               icon={<AppIcon name="alert" size={22} />}
->>>>>>> 15c0b3eba9c90e33df0e42089ca7c8e99af5a67a:src/app/page.js
-              title="Alert System"
-              description="Multi-channel instant notifications when threats are detected"
+              title={featureCards.alertSystem?.title || "Alert System"}
+              description={featureCards.alertSystem?.description || "Multi-channel instant notifications when threats are detected"}
               features={[
-                "GSM/SMS alerts",
-                "Account freeze capability",
-                "Law enforcement integration"
+                featureCards.alertSystem?.feature1 || "GSM/SMS alerts",
+                featureCards.alertSystem?.feature2 || "Account freeze capability",
+                featureCards.alertSystem?.feature3 || "Law enforcement integration"
               ]}
             />
           </div>
@@ -174,23 +157,23 @@ import AppIcon from '@/components/AppIcon';
           <div className="steps-grid">
             <div className="step">
               <div className="step-number">1</div>
-              <h3>Create Your Account</h3>
-              <p>Register with enhanced security questions and device fingerprinting</p>
+              <h3>{steps.step1Title || "Create Your Account"}</h3>
+              <p>{steps.step1Desc || "Register with enhanced security questions and device fingerprinting"}</p>
             </div>
             <div className="step">
               <div className="step-number">2</div>
-              <h3>Multi-Layer Protection</h3>
-              <p>Your credentials are encrypted with salt, pepper, and stored across decoy accounts</p>
+              <h3>{steps.step2Title || "Multi-Layer Protection"}</h3>
+              <p>{steps.step2Desc || "Your credentials are encrypted with salt, pepper, and stored across decoy accounts"}</p>
             </div>
             <div className="step">
               <div className="step-number">3</div>
-              <h3>Continuous Monitoring</h3>
-              <p>AI analyzes every transaction, device, and behavior pattern in real-time</p>
+              <h3>{steps.step3Title || "Continuous Monitoring"}</h3>
+              <p>{steps.step3Desc || "AI analyzes every transaction, device, and behavior pattern in real-time"}</p>
             </div>
             <div className="step">
               <div className="step-number">4</div>
-              <h3>Instant Response</h3>
-              <p>Threats are neutralized, alerts sent, and your account protected automatically</p>
+              <h3>{steps.step4Title || "Instant Response"}</h3>
+              <p>{steps.step4Desc || "Threats are neutralized, alerts sent, and your account protected automatically"}</p>
             </div>
           </div>
         </div>
@@ -200,10 +183,10 @@ import AppIcon from '@/components/AppIcon';
       <section className="cta-section">
         <div className="container">
           <div className="cta-box">
-            <h2>Ready to Experience Unbreakable Security?</h2>
-            <p>Join thousands of users who trust PayShield to protect their financial future</p>
+            <h2>{dict.home?.ctaReady || "Ready to Experience Unbreakable Security?"}</h2>
+            <p>{dict.home?.ctaSubtext || "Join thousands of users who trust PayShield to protect their financial future"}</p>
             <Link href={`/${lang}/register`} className="btn btn-large">
-              {dict.home?.getStartedFree || "Start Your Free Trial"}
+              {dict.home?.ctaButton || "Start Your Free Trial"}
             </Link>
           </div>
         </div>
