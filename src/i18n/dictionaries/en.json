@@ -528,6 +528,17 @@
     "emergencyNumber": "+91 1800-SECURE-NOW",
     "emergencyAvailable": "Available 24/7 for urgent security matters"
   },
+  "threat": {
+    "title": "Threat Intelligence Dashboard",
+    "nav": {
+      "dashboard": "Overview",
+      "incidents": "Incidents",
+      "forensics": "Forensics",
+      "honeypots": "Honeypots",
+      "telemetry": "Telemetry",
+      "settings": "Settings"
+    }
+  },
   "footer": {
     "brand": "🛡️ PayShield",
     "brandDesc": "Next-generation payment security with multi-layer protection, behavioral analytics, and real-time threat detection.",
