@@ -2,14 +2,23 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import AppIcon from '@/components/AppIcon';
+import {
+  collectDeviceFingerprint,
+  getClientNetworkInfo,
+  getOrCreateDeviceKeyPair
+} from '@/lib/security/clientDevice';
 
 export default function Register() {
   const params = useParams();
+  const router = useRouter();
   const currentLang = params?.lang || 'en';
   const [dict, setDict] = useState({});
   const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -28,13 +37,70 @@ export default function Register() {
       .catch(() => import('@/i18n/dictionaries/en.json').then((m) => setDict(m.default || {})));
   }, [currentLang]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (step === 1) {
+      if (formData.password !== formData.confirmPassword) {
+        setMessageType('error');
+        setMessage('Password and confirm password do not match.');
+        return;
+      }
+
+      setMessage('');
       setStep(2);
-    } else {
-      // Handle registration logic here
-      console.log('Registration data:', formData);
+      return;
+    }
+
+    setSubmitting(true);
+    setMessage('');
+
+    try {
+      const device = collectDeviceFingerprint();
+      const network = getClientNetworkInfo();
+      const keyPair = await getOrCreateDeviceKeyPair();
+
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email.trim().toLowerCase(),
+          name: formData.fullName.trim(),
+          phone: formData.phone.trim(),
+          password: formData.password,
+          motherNickname: formData.motherNickname,
+          firstPetName: formData.firstPetName,
+          deviceDna: device.deviceDna,
+          devicePublicKeyPem: keyPair.publicPem,
+          browserSignature: device.browserSignature,
+          screenResolution: device.screenResolution,
+          locationCountry: network.locationCountry,
+          locationCity: network.locationCity,
+          ipAddress: network.ipAddress,
+          openingBalance: 5000
+        })
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || 'Registration failed.');
+      }
+
+      localStorage.setItem('ps_user_id', payload.user.id);
+      localStorage.setItem('ps_user_email', payload.user.email);
+      localStorage.setItem('ps_user_name', payload.user.name);
+
+      setMessageType('success');
+      setMessage('Registration successful. Redirecting to secure login...');
+
+      setTimeout(() => {
+        router.push(`/${currentLang}/login`);
+      }, 800);
+    } catch (error) {
+      setMessageType('error');
+      setMessage(error.message || 'Unable to create account.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -188,11 +254,15 @@ export default function Register() {
               </>
             )}
 
-            <button type="submit" className="btn btn-primary btn-full">
+            <button type="submit" className="btn btn-primary btn-full" disabled={submitting}>
               {step === 1
                 ? (registerDict.continueButton || 'Continue to Security Questions')
-                : (registerDict.createAccountButton || 'Create Account')}
+                : (submitting ? 'Creating account...' : registerDict.createAccountButton || 'Create Account')}
             </button>
+
+            {message ? (
+              <p style={{ marginTop: 10, color: messageType === 'error' ? '#b91c1c' : '#166534' }}>{message}</p>
+            ) : null}
           </form>
 
           <div className="auth-footer">

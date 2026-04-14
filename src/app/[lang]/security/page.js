@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import AppIcon from '@/components/AppIcon';
+import { authFetch } from '@/lib/http/authFetch';
 
 export default function Security() {
   const params = useParams();
@@ -13,6 +14,8 @@ export default function Security() {
     motherNickname: '',
     firstPetName: ''
   });
+  const [saveMessage, setSaveMessage] = useState('');
+  const [saveError, setSaveError] = useState(false);
   const security = dict.security || {};
   const common = dict.common || {};
 
@@ -29,9 +32,41 @@ export default function Security() {
     });
   };
 
-  const handleSaveQuestions = (e) => {
+  const handleSaveQuestions = async (e) => {
     e.preventDefault();
-    console.log('Updating security questions:', securityQuestions);
+
+    const userId = localStorage.getItem('ps_user_id');
+    if (!userId) {
+      setSaveError(true);
+      setSaveMessage('Login is required to update security questions.');
+      return;
+    }
+
+    try {
+      const response = await authFetch('/api/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          motherNickname: securityQuestions.motherNickname,
+          firstPetName: securityQuestions.firstPetName
+        })
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || 'Unable to update security questions.');
+      }
+
+      setSaveError(false);
+      setSaveMessage('Security questions updated successfully.');
+      setSecurityQuestions({ motherNickname: '', firstPetName: '' });
+    } catch (error) {
+      setSaveError(true);
+      setSaveMessage(error.message || 'Unable to update security questions.');
+    }
   };
 
   return (
@@ -214,6 +249,9 @@ export default function Security() {
                 <input type="text" id="firstPetName" name="firstPetName" value={securityQuestions.firstPetName} onChange={handleQuestionChange} placeholder={security.question2Placeholder || 'Enter new answer'} />
               </div>
               <button type="submit" className="btn btn-primary">{security.saveQuestions || 'Save Security Questions'}</button>
+              {saveMessage ? (
+                <p style={{ marginTop: 10, color: saveError ? '#b91c1c' : '#166534' }}>{saveMessage}</p>
+              ) : null}
             </form>
           </div>
 

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { verifySpicePassword, createSpicePasswordHash } from '@/lib/security/password';
 import { encryptValue } from '@/lib/security/crypto';
+import { requireSession } from '@/lib/auth/session';
 
 const schema = z
   .object({
@@ -27,6 +28,11 @@ export async function PATCH(request) {
   try {
     const body = await request.json();
     const data = schema.parse(body);
+
+    const auth = await requireSession(request, data.userId);
+    if (!auth.ok) {
+      return auth.response;
+    }
 
     const user = await prisma.user.findUnique({ where: { id: data.userId } });
     if (!user) {

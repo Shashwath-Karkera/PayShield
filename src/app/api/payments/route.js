@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { evaluateAnomalySignal } from '@/lib/security/ml';
+import { evaluateRateLimit } from '@/lib/security/rateLimit';
+import { encryptValue } from '@/lib/security/crypto';
+import { requireSession } from '@/lib/auth/session';
+import { verifyPayShieldPin } from '@/lib/security/verification';
 
 const paymentSchema = z.object({
   userId: z.string().min(1),
@@ -12,6 +16,7 @@ const paymentSchema = z.object({
   deviceDna: z.string().min(3),
   browserSignature: z.string().min(3),
   screenResolution: z.string().min(3),
+  payShieldPin: z.string().min(4).max(12),
   mouseShakeIntensity: z.number().min(0).max(100),
   scrollSpeed: z.number().min(0),
   paymentFrequency: z.number().min(0),
@@ -27,6 +32,11 @@ export async function POST(request) {
     const body = await request.json();
     const data = paymentSchema.parse(body);
 
+    const auth = await requireSession(request, data.userId);
+    if (!auth.ok) {
+      return auth.response;
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: data.userId }
     });
@@ -41,6 +51,80 @@ export async function POST(request) {
         { status: 403 }
       );
     }
+
+    if (!user.payShieldPinHash) {
+      return Response.json(
+        { error: 'PayShield PIN is not configured. Complete verification setup first.' },
+        { status: 403 }
+      );
+    }
+
+    const pinOk = await verifyPayShieldPin(data.payShieldPin, user.payShieldPinHash);
+    if (!pinOk) {
+      return Response.json({ error: 'Invalid PayShield PIN.' }, { status: 401 });
+    }
+
+    await prisma.securityEvent.create({
+      data: {
+        userId: user.id,
+        type: 'PAYMENT_REQUEST',
+        ipAddress: data.ipAddress,
+        metadata: {
+          amount: data.amount,
+          payee: data.payee,
+          deviceDna: data.deviceDna
+        }
+      }
+    });
+
+    const rateLimit = await evaluateRateLimit({
+      userId: user.id,
+      ipAddress: data.ipAddress
+    });
+
+    if (rateLimit.decision === 'BLOCK') {
+      await prisma.securityEvent.create({
+        data: {
+          userId: user.id,
+          type: 'PAYMENT_RATE_BLOCK',
+          ipAddress: data.ipAddress,
+          metadata: { recentRequests: rateLimit.count }
+        }
+      });
+
+      return Response.json(
+        {
+          error: 'Too many rapid requests. Transactions are temporarily blocked.',
+          action: 'BLOCK'
+        },
+        { status: 429 }
+      );
+    }
+
+    if (rateLimit.decision === 'DELAY') {
+      await wait(rateLimit.delayMs);
+      await prisma.securityEvent.create({
+        data: {
+          userId: user.id,
+          type: 'PAYMENT_RATE_DELAY',
+          ipAddress: data.ipAddress,
+          metadata: { delayMs: rateLimit.delayMs, recentRequests: rateLimit.count }
+        }
+      });
+    }
+
+    const encryptedPayload = encryptValue(
+      JSON.stringify({
+        amount: data.amount,
+        payee: data.payee,
+        locationCountry: data.locationCountry,
+        locationCity: data.locationCity,
+        ipAddress: data.ipAddress,
+        deviceDna: data.deviceDna,
+        browserSignature: data.browserSignature,
+        screenResolution: data.screenResolution
+      })
+    );
 
     await prisma.behavioralLog.create({
       data: {
@@ -82,6 +166,7 @@ export async function POST(request) {
           deviceDna: data.deviceDna,
           browserSignature: data.browserSignature,
           screenResolution: data.screenResolution,
+          encryptedPayload,
           mlScore: ml.score,
           mlReasons: ml.reasons,
           isTransferAllAttempt: Boolean(data.transferAllIntent)
@@ -139,6 +224,7 @@ export async function POST(request) {
           deviceDna: data.deviceDna,
           browserSignature: data.browserSignature,
           screenResolution: data.screenResolution,
+          encryptedPayload,
           mlScore: ml.score,
           mlReasons: ml.reasons,
           isTransferAllAttempt: Boolean(data.transferAllIntent)

@@ -2,13 +2,23 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import AppIcon from '@/components/AppIcon';
+import {
+  collectDeviceFingerprint,
+  getClientNetworkInfo,
+  getOrCreateDeviceKeyPair,
+  signChallenge
+} from '@/lib/security/clientDevice';
 
 export default function Login() {
   const params = useParams();
+  const router = useRouter();
   const currentLang = params?.lang || 'en';
   const [dict, setDict] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -22,10 +32,87 @@ export default function Login() {
       .catch(() => import('@/i18n/dictionaries/en.json').then((m) => setDict(m.default || {})));
   }, [currentLang]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempt:', formData);
+
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const device = collectDeviceFingerprint();
+      const network = getClientNetworkInfo();
+      const keyPair = await getOrCreateDeviceKeyPair();
+
+      const loginResponse = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+          deviceDna: device.deviceDna,
+          ipAddress: network.ipAddress,
+          locationCountry: network.locationCountry,
+          locationCity: network.locationCity,
+          browserSignature: device.browserSignature,
+          screenResolution: device.screenResolution,
+          networkHints: ''
+        })
+      });
+
+      const loginPayload = await loginResponse.json();
+      if (!loginResponse.ok) {
+        throw new Error(loginPayload.error || 'Login failed.');
+      }
+
+      const signature = await signChallenge(keyPair.privateKey, loginPayload.challenge);
+
+      const challengeResponse = await fetch('/api/auth/challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          challengeId: loginPayload.challengeId,
+          signature,
+          ipAddress: network.ipAddress,
+          locationCountry: network.locationCountry,
+          locationCity: network.locationCity,
+          browserSignature: device.browserSignature,
+          screenResolution: device.screenResolution,
+          deviceDna: device.deviceDna,
+          devicePublicKeyPem: keyPair.publicPem,
+          trustedDeviceName: 'Browser Device'
+        })
+      });
+
+      const authPayload = await challengeResponse.json();
+      if (!challengeResponse.ok) {
+        throw new Error(authPayload.error || 'Device challenge verification failed.');
+      }
+
+      localStorage.setItem('ps_session_token', authPayload.sessionToken);
+      localStorage.setItem('ps_user_id', authPayload.user.id);
+      localStorage.setItem('ps_user_email', authPayload.user.email);
+      localStorage.setItem('ps_user_name', authPayload.user.name);
+      localStorage.setItem('ps_verification_id', authPayload.verification?.id || '');
+      if (authPayload.verification?.devEmailOtp) {
+        localStorage.setItem('ps_dev_email_otp', authPayload.verification.devEmailOtp);
+      }
+
+      if (authPayload.verification?.devSmsOtp) {
+        localStorage.setItem('ps_dev_sms_otp', authPayload.verification.devSmsOtp);
+      }
+
+      setMessageType('success');
+      setMessage('Primary login complete. Redirecting to multi-factor verification...');
+
+      setTimeout(() => {
+        router.push(`/${currentLang}/verify?verificationId=${authPayload.verification?.id || ''}`);
+      }, 600);
+    } catch (error) {
+      setMessageType('error');
+      setMessage(error.message || 'Unable to login securely.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -82,9 +169,13 @@ export default function Login() {
               </Link>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-full">
-              {loginDict.loginButton || 'Login Securely'}
+            <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
+              {loading ? 'Verifying...' : loginDict.loginButton || 'Login Securely'}
             </button>
+
+            {message ? (
+              <p style={{ marginTop: 10, color: messageType === 'error' ? '#b91c1c' : '#166534' }}>{message}</p>
+            ) : null}
           </form>
 
           <div className="auth-divider">

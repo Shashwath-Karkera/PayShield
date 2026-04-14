@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import AppIcon from '@/components/AppIcon';
+import { authFetch } from '@/lib/http/authFetch';
 
 const initialState = {
   userId: '',
@@ -13,9 +15,18 @@ const initialState = {
 };
 
 export default function BankCredentialsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [form, setForm] = useState(initialState);
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const userId = localStorage.getItem('ps_user_id');
+    if (userId) {
+      setForm((previous) => ({ ...previous, userId }));
+    }
+  }, []);
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -28,9 +39,11 @@ export default function BankCredentialsPage() {
     setMessage('Encrypting and storing your credential payload...');
 
     try {
-      const response = await fetch('/api/bank-credentials', {
+      const response = await authFetch('/api/bank-credentials', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           ...form,
           accountNumber: form.accountNumber.trim(),
@@ -47,6 +60,12 @@ export default function BankCredentialsPage() {
       setStatus('success');
       setMessage(`Secure bank profile saved with record id: ${payload.id}`);
       setForm(initialState);
+
+      const segments = String(pathname || '/').split('/').filter(Boolean);
+      const lang = segments[0] && ['en', 'hi', 'kn'].includes(segments[0]) ? segments[0] : 'en';
+      setTimeout(() => {
+        router.push(`/${lang}/payment`);
+      }, 700);
     } catch (error) {
       setStatus('error');
       setMessage(error.message || 'Something went wrong while saving credentials.');
