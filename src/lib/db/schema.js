@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, timestamp, boolean, jsonb, text, integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, timestamp, boolean, jsonb, text, integer, index } from 'drizzle-orm/pg-core';
 import { otpCodes } from './schema/otp.js';
 
 export const users = pgTable('users', {
@@ -32,6 +32,41 @@ export const userSessions = pgTable('user_sessions', {
   isActive: boolean('is_active').default(true),
   expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const deviceCredentials = pgTable('device_credentials', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  deviceName: varchar('device_name', { length: 255 }).notNull(),
+  deviceDna: varchar('device_dna', { length: 255 }).notNull(),
+  publicKeyPem: text('public_key_pem').notNull(),
+  browserSignature: text('browser_signature'),
+  screenResolution: varchar('screen_resolution', { length: 50 }),
+  lastSeenIp: varchar('last_seen_ip', { length: 45 }),
+  lastSeenCountry: varchar('last_seen_country', { length: 2 }),
+  lastUsedAt: timestamp('last_used_at'),
+  trusted: boolean('trusted').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return [
+    index('device_credentials_user_id_idx').on(table.userId),
+    index('device_credentials_device_dna_idx').on(table.deviceDna),
+  ];
+});
+
+export const loginChallenges = pgTable('login_challenges', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  deviceCredentialId: integer('device_credential_id').references(() => deviceCredentials.id),
+  challenge: text('challenge').notNull(),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  expiresAt: timestamp('expires_at').notNull(),
+  consumedAt: timestamp('consumed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return [
+    index('login_challenges_user_id_idx').on(table.userId),
+  ];
 });
 
 export { otpCodes };
