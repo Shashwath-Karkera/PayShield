@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { icon: '📷', label: 'QR Payment',       href: '/qr',            active: false },
   { icon: '👤', label: 'Profile',          href: '/profile',       active: false },
   { icon: '🛡️', label: 'Security',         href: '/security',      active: false },
+  { icon: '🚨', label: 'Threat Admin',       href: '/admin/threats', active: false },
   { icon: '⚙️', label: 'Settings',         href: '/settings',      active: false },
 ];
 

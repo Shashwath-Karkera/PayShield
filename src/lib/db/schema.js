@@ -69,4 +69,16 @@ export const loginChallenges = pgTable('login_challenges', {
   ];
 });
 
+export const behavioralEvents = pgTable('behavioral_events', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id),
+  sessionId: varchar('session_id', { length: 255 }),
+  eventType: varchar('event_type', { length: 50 }).notNull(),
+  riskScore: integer('risk_score').notNull(),
+  triggeredRules: jsonb('triggered_rules'),
+  actionTaken: varchar('action_taken', { length: 50 }).notNull(),
+  metrics: jsonb('metrics'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 export { otpCodes };
