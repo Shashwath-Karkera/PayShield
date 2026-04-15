@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AppIcon from '@/components/AppIcon';
+import BehaviorCollector from '@/lib/behavior/collector';
 import {
   collectDeviceFingerprint,
   getClientNetworkInfo,
@@ -26,6 +27,20 @@ export default function Login() {
   const loginDict = dict.auth?.login || {};
   const commonDict = dict.common || {};
 
+  const behaviorCollector = React.useRef(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !behaviorCollector.current) {
+      behaviorCollector.current = new BehaviorCollector();
+      behaviorCollector.current.startTracking();
+    }
+    return () => {
+      if (behaviorCollector.current) {
+        behaviorCollector.current.stopTracking();
+      }
+    };
+  }, []);
+
   useEffect(() => {
     import(`@/i18n/dictionaries/${currentLang}.json`)
       .then((module) => setDict(module.default || {}))
@@ -41,6 +56,7 @@ export default function Login() {
     try {
       const device = collectDeviceFingerprint();
       const network = getClientNetworkInfo();
+      const behaviorData = behaviorCollector.current?.getData() || {};
       const keyPair = await getOrCreateDeviceKeyPair();
 
       const loginResponse = await fetch('/api/auth/login', {
@@ -55,7 +71,8 @@ export default function Login() {
           locationCity: network.locationCity,
           browserSignature: device.browserSignature,
           screenResolution: device.screenResolution,
-          networkHints: ''
+          networkHints: '',
+          behaviorData
         })
       });
 
