@@ -1,26 +1,19 @@
 ﻿"use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React from "react";
 import {
   ShieldAlert,
   Activity,
-  MapPin,
   Server,
   Terminal,
-  Lock,
   ArrowUpRight,
   ShieldCheck,
   Ban,
-  ActivitySquare
+  ActivitySquare,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -31,63 +24,6 @@ import {
   Cell
 } from 'recharts';
 import ThreatSectionShell from "./ThreatSectionShell";
-
-// =========================================================================
-// CUSTOM NEW PAYSHIELD LOGO LOADER
-// =========================================================================
-const PayShieldLogoLoader = () => (
-  <motion.div
-    key="payshield-loader"
-    initial={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.8, ease: "easeInOut" }}
-    className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900 border border-slate-800"
-  >
-    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.15)_0%,rgba(15,23,42,1)_100%)]"></div>
-    
-    <div className="relative z-10 flex flex-col items-center">
-      <motion.div
-        initial={{ scale: 0.8, rotate: -15, opacity: 0 }}
-        animate={{ scale: 1, rotate: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
-        className="relative flex items-center justify-center w-24 h-24 mb-6 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-2xl shadow-indigo-500/40"
-      >
-        <div className="absolute inset-1 rounded-xl bg-slate-900 flex items-center justify-center">
-          <ShieldAlert className="w-12 h-12 text-indigo-400" />
-        </div>
-      </motion.div>
-
-      <motion.h1
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="text-3xl font-bold tracking-tight text-white mb-2"
-        style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
-      >
-        PayShield
-      </motion.h1>
-
-      <motion.h2
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="text-sm font-medium tracking-widest text-indigo-300 uppercase mb-8"
-        style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
-      >
-        Threat Intelligence System
-      </motion.h2>
-
-      <div className="w-48 h-1 bg-slate-800 rounded-full overflow-hidden">
-        <motion.div
-          initial={{ width: "0%" }}
-          animate={{ width: "100%" }}
-          transition={{ duration: 1.5, ease: "circInOut" }}
-          className="h-full bg-indigo-500 rounded-full"
-        />
-      </div>
-    </div>
-  </motion.div>
-);
 
 // MOCK DATA FOR VISUALIZATIONS
 const attackTrafficData = [
@@ -117,63 +53,46 @@ const recentLogs = [
   { id: 'EV-1025', type: 'Data Exfil', ip: '185.33.2.1', status: 'Intercepted', time: '4 hrs ago', severity: 'critical' },
 ];
 
-export default function ThreatDashboardClient({ lang }) {
-  const [showLoader, setShowLoader] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    if (typeof window !== "undefined") {
-      const timer = setTimeout(() => {
-        if (mounted) setShowLoader(false);
-      }, 2000);
-      return () => {
-        mounted = false;
-        clearTimeout(timer);
-      };
-    }
-  }, []);
-
+export default function ThreatDashboardClient() {
   return (
-    <ThreatSectionShell>
-      <AnimatePresence>
-        {showLoader && <PayShieldLogoLoader />}
-      </AnimatePresence>
-
-      {!showLoader && (
-        <div className="space-y-6" style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}>
+    <ThreatSectionShell
+      title="Security Posture Dashboard"
+      subtitle="Real-time analytical view of infrastructure health and active threats."
+    >
+      <div className="space-y-8 lg:space-y-10">
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="section mb-0 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Security Posture Dashboard</h1>
-              <p className="text-slate-500 mt-1">Real-time analytical view of infrastructure health and active threats.</p>
+              <h2 className="text-xl font-bold text-slate-900">Operational Health</h2>
+              <p className="text-sm text-slate-500 mt-1">Live telemetry from edge, application, and core payment services.</p>
             </div>
-            <div className="flex gap-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium border border-emerald-200">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex h-8 items-center rounded-full border border-emerald-200 bg-emerald-100 px-3 text-sm font-medium text-emerald-700">
                 <Activity className="w-4 h-4 mr-2" /> System Healthy
               </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium border border-indigo-200">
+              <span className="inline-flex h-8 items-center rounded-full border border-indigo-200 bg-indigo-100 px-3 text-sm font-medium text-indigo-700">
                 <ShieldCheck className="w-4 h-4 mr-2" /> Protection Online
               </span>
             </div>
           </div>
 
           {/* Quick Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
             {[
               { label: "Threats Blocked (24h)", value: "24,892", icon: Ban, color: "text-rose-600", bg: "bg-rose-100", trend: "+12.5%" },
               { label: "Active Connections", value: "8,349", icon: ActivitySquare, color: "text-blue-600", bg: "bg-blue-100", trend: "+4.2%" },
               { label: "Infrastructure Nodes", value: "142", icon: Server, color: "text-indigo-600", bg: "bg-indigo-100", trend: "0%" },
               { label: "Anomalies Detected", value: "18", icon: ShieldAlert, color: "text-amber-600", bg: "bg-amber-100", trend: "-2.1%" },
             ].map((stat, i) => (
-              <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4">
-                <div className={`p-3 rounded-xl ${stat.bg}`}>
+              <div key={i} className="content-card flex min-h-34 items-center gap-4 rounded-3xl p-6">
+                <div className={`rounded-xl p-3 ${stat.bg}`}>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">{stat.label}</p>
-                  <div className="flex items-baseline gap-2 mt-1">
+                <div className="flex min-w-0 flex-1 flex-col justify-center">
+                  <p className="text-sm font-medium leading-snug text-slate-500">{stat.label}</p>
+                  <div className="mt-2 flex items-end gap-2">
                     <h3 className="text-2xl font-bold text-slate-900">{stat.value}</h3>
-                    <span className={`text-xs font-medium ${stat.trend.startsWith('+') ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    <span className={`text-xs font-semibold ${stat.trend.startsWith('+') ? 'text-amber-600' : 'text-emerald-600'}`}>
                       {stat.trend}
                     </span>
                   </div>
@@ -183,15 +102,15 @@ export default function ThreatDashboardClient({ lang }) {
           </div>
 
           {/* Main Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 2xl:grid-cols-3">
             
             {/* Area Chart: Traffic Over Time */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div className="content-card rounded-3xl p-6 2xl:col-span-2 lg:p-7">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-slate-900">Attack Velocity & Vectors</h3>
                 <p className="text-sm text-slate-500">Volumetric analysis of incoming malicious traffic patterns.</p>
               </div>
-              <div className="h-[300px] w-full">
+              <div className="h-75 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={attackTrafficData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
@@ -206,7 +125,7 @@ export default function ThreatDashboardClient({ lang }) {
                     <Tooltip 
                       contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                     />
-                    <Area type="monotone" dataKey="ddos" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorDdos)" />
+                    <Area type="monotone" dataKey="ddos" name="DDoS" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorDdos)" />
                     <Area type="monotone" dataKey="botnet" stroke="#ec4899" strokeWidth={2} fill="none" />
                     <Area type="monotone" dataKey="sql" stroke="#f59e0b" strokeWidth={2} fill="none" />
                   </AreaChart>
@@ -215,20 +134,20 @@ export default function ThreatDashboardClient({ lang }) {
             </div>
 
             {/* Pie Chart: Attack Origins */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
+            <div className="content-card flex min-h-90 flex-col rounded-3xl p-6 lg:p-7">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-slate-900">Regional Threats</h3>
                 <p className="text-sm text-slate-500">Distribution of source geography.</p>
               </div>
-              <div className="flex-1 flex items-center justify-center min-h-[250px]">
+              <div className="flex flex-1 items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={attackOriginsData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
+                      innerRadius={58}
+                      outerRadius={84}
                       paddingAngle={5}
                       dataKey="value"
                       stroke="none"
@@ -244,10 +163,10 @@ export default function ThreatDashboardClient({ lang }) {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex flex-wrap justify-center gap-4 mt-2">
+              <div className="mt-2 flex flex-wrap justify-center gap-4">
                 {attackOriginsData.map((entry, index) => (
                   <div key={entry.name} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                     <span className="text-sm font-medium text-slate-700">{entry.name}</span>
                   </div>
                 ))}
@@ -256,7 +175,7 @@ export default function ThreatDashboardClient({ lang }) {
           </div>
 
           {/* Logs Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="content-card overflow-hidden rounded-3xl p-0">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Security Event Log</h3>
@@ -305,8 +224,7 @@ export default function ThreatDashboardClient({ lang }) {
               </table>
             </div>
           </div>
-        </div>
-      )}
+      </div>
     </ThreatSectionShell>
   );
 }

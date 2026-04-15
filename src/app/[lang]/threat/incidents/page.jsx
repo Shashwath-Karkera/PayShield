@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertOctagon, Filter, CheckCircle2, XCircle, Search, Clock, ShieldAlert } from "lucide-react";
+import { AlertOctagon, CheckCircle2, Search, Clock, ShieldAlert } from "lucide-react";
 import ThreatSectionShell from "../ThreatSectionShell";
 
 const INCIDENTS = [
@@ -79,32 +79,32 @@ export default function IncidentsPage() {
   });
 
   return (
-    <ThreatSectionShell 
-      title="Incident Response" 
+    <ThreatSectionShell
+      title="Incident Response"
       subtitle="Track, analyze, and mitigate active security events and historical threats."
     >
-      <div className="flex flex-col w-full gap-6 lg:gap-8">
+      <div className="flex flex-col w-full gap-8 lg:gap-10">
         
         {/* Controls Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-white p-4 lg:p-6 rounded-3xl border border-slate-200 shadow-sm w-full">
+        <div className="content-card flex w-full flex-col items-stretch justify-between gap-4 rounded-3xl p-5 lg:flex-row lg:items-center lg:p-7">
           
-          <div className="relative w-full sm:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search by ID, Type, or Target..." 
+          <div className="relative w-full lg:max-w-md">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition-colors" />
+            <input
+              type="text"
+              placeholder="Search by ID, Type, or Target..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-slate-900   rounded-2xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 focus:bg-white transition-all placeholder:text-slate-400 placeholder:font-medium"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-12 pr-4 text-sm font-medium text-slate-900 placeholder:font-medium placeholder:text-slate-400 transition-all focus:border-indigo-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
 
-          <div className="flex bg-slate-100 p-1.5 rounded-2xl w-full sm:w-auto shrink-0 border border-slate-200/50">
+          <div className="flex w-full shrink-0 rounded-2xl border border-slate-200/50 bg-slate-100 p-1.5 lg:w-auto">
             {["All", "Active", "Investigating", "Mitigated"].map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`flex-1 sm:flex-none px-4 lg:px-6 py-2.5 rounded-xl     transition-all ${
+                className={`flex-1 sm:flex-none rounded-xl px-4 py-2.5 text-sm font-semibold transition-all lg:px-6 ${
                   filter === f 
                     ? "bg-white text-indigo-600 shadow-sm border border-slate-200" 
                     : "text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 border border-transparent"
@@ -117,19 +117,19 @@ export default function IncidentsPage() {
         </div>
 
         {/* Incident Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6 w-full">
+        <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-2 lg:gap-7">
           <AnimatePresence mode="popLayout">
             {filteredIncidents.length === 0 ? (
               <motion.div 
                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                 className="col-span-1 xl:col-span-2 text-center py-20 bg-white border border-slate-200 shadow-sm rounded-3xl flex flex-col items-center justify-center align-middle"
+                  className="content-card col-span-1 xl:col-span-2 flex flex-col items-center justify-center rounded-3xl py-20 text-center align-middle"
               >
                  <ShieldAlert className="w-16 h-16 text-slate-300 mb-6" />
-                 <h3 className="  text-slate-900 mb-2">No Incidents Found</h3>
-                 <p className="text-slate-500 font-medium max-w-md mx-auto ">No threats match the current search or filter criteria. The perimeter is secure.</p>
+                <h3 className="mb-2 text-lg font-bold text-slate-900">No Incidents Found</h3>
+                 <p className="mx-auto max-w-md text-sm font-medium text-slate-500">No threats match the current search or filter criteria. The perimeter is secure.</p>
               </motion.div>
             ) : (
-              filteredIncidents.map((incident, i) => (
+              filteredIncidents.map((incident) => (
                 <motion.div
                   layout
                   initial={{ opacity: 0, scale: 0.98 }}
@@ -137,56 +137,56 @@ export default function IncidentsPage() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
                   key={incident.id}
-                  className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-md hover:border-slate-300 transition-all cursor-pointer w-full"
+                  className="content-card flex w-full flex-col overflow-hidden rounded-3xl p-0 transition-all hover:border-slate-300 hover:shadow-md"
                 >
-                  <div className="p-5 lg:p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50 group-hover:bg-white transition-colors">
+                  <div className="flex items-start justify-between border-b border-slate-100 bg-slate-50/50 p-6 transition-colors group-hover:bg-white lg:p-7">
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <span className={`flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border text-[10px]    shadow-sm ${getStatusColor(incident.status)}`}>
+                        <span className={`flex items-center gap-1.5 rounded-lg border bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] shadow-sm ${getStatusColor(incident.status)}`}>
                           {getStatusIcon(incident.status)}
                           {incident.status}
                         </span>
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200  ">
+                        <span className="rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
                           {incident.severity}
                         </span>
                       </div>
-                      <h3 className="  text-slate-900 leading-tight">{incident.type}</h3>
-                      <p className=" font-mono font-medium text-slate-500 mt-1">{incident.id}</p>
+                      <h3 className="text-lg font-bold leading-tight text-slate-900">{incident.type}</h3>
+                      <p className="mt-1 font-mono text-xs font-medium text-slate-500">{incident.id}</p>
                     </div>
                     <div className="text-right">
-                      <span className=" font-bold text-slate-500 bg-white border border-slate-200 shadow-sm px-3 py-1.5 rounded-xl   flex items-center gap-2">
+                      <span className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
                         {incident.time}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="p-5 lg:p-6 flex-1 bg-white">
-                    <p className="  text-slate-600 leading-relaxed mb-6">
+                  <div className="flex-1 bg-white p-6 lg:p-7">
+                    <p className="mb-6 text-sm font-medium leading-relaxed text-slate-600">
                       {incident.description}
                     </p>
                     
-                    <div className="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                    <div className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-2">
                       <div>
-                        <p className="text-[10px]    text-slate-400 mb-1">Source Origin</p>
-                        <p className=" font-mono  text-slate-800 bg-white px-2 py-1 rounded inline-block border border-slate-200 w-full truncate" title={incident.source}>
+                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Source Origin</p>
+                        <p className="inline-block w-full truncate rounded border border-slate-200 bg-white px-2 py-1 font-mono text-xs text-slate-800" title={incident.source}>
                           {incident.source}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px]    text-slate-400 mb-1">Target Endpoint</p>
-                        <p className=" font-mono  text-slate-800 bg-white px-2 py-1 rounded inline-block border border-slate-200 w-full truncate" title={incident.target}>
+                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Target Endpoint</p>
+                        <p className="inline-block w-full truncate rounded border border-slate-200 bg-white px-2 py-1 font-mono text-xs text-slate-800" title={incident.target}>
                           {incident.target}
                         </p>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="p-4 lg:p-5 border-t border-slate-100 bg-slate-50/80 flex justify-end gap-3 rounded-b-3xl">
-                    <button className="px-5 py-2.5  font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 rounded-xl shadow-sm transition-all  ">
+                  <div className="flex justify-end gap-3 rounded-b-3xl border-t border-slate-100 bg-slate-50/80 p-5 lg:p-6">
+                    <button className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900">
                       View Logs
                     </button>
-                    <button className="px-5 py-2.5  font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-500/20 transition-all  ">
+                    <button className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-500/20 transition-all hover:bg-indigo-700">
                       Take Action
                     </button>
                   </div>
