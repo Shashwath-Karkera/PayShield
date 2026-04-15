@@ -95,7 +95,12 @@ export default function Navbar({ layoutState = 'default' }) {
             </>
           ) : null}
           
-          <select value={currentLang} onChange={switchLanguage} style={{ backgroundColor: 'transparent', color: 'inherit', border: '1px solid #ccc', padding: '4px', borderRadius: '4px', cursor: 'pointer', margin: '0 8px' }}>
+          <select
+            value={currentLang}
+            onChange={switchLanguage}
+            className="nav-lang-select"
+            aria-label="Select language"
+          >
             <option value="en">Eng</option>
             <option value="hi">हिंदी</option>
             <option value="kn">ಕನ್ನಡ</option>

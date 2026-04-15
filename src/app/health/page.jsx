@@ -84,7 +84,7 @@ export default function HealthMonitor() {
         .hm-page { min-height:100vh;background:#f1f5f9;font-family:'Segoe UI',sans-serif; }
 
         .hm-topbar {
-          background:#fff;border-bottom:1px solid #e2e8f0;padding:18px 32px;
+          background:rgba(255,255,255,.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid #e2e8f0;padding:18px 32px;
           display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;
         }
         .hm-topbar-left { display:flex;align-items:center;gap:14px; }
@@ -108,7 +108,7 @@ export default function HealthMonitor() {
         /* Overall status banner */
         .hm-banner {
           border-radius:18px;padding:24px 28px;display:flex;align-items:center;gap:18px;
-          box-shadow:0 6px 24px rgba(0,0,0,.08);
+          box-shadow:0 12px 28px rgba(15,23,42,.14);
         }
         .hm-banner-icon { font-size:44px;flex-shrink:0; }
         .hm-banner-title { font-size:20px;font-weight:800;margin:0 0 4px; }
@@ -126,6 +126,7 @@ export default function HealthMonitor() {
 
         /* Services card */
         .hm-card { background:#fff;border-radius:16px;border:1px solid #f1f5f9;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden; }
+        .hm-card:hover { box-shadow:0 10px 26px rgba(15,23,42,.1); }
         .hm-card-header {
           padding:16px 22px;border-bottom:1px solid #f8fafc;
           display:flex;justify-content:space-between;align-items:center;

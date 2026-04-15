@@ -136,7 +136,7 @@ export default function QRPayment() {
 
         /* Topbar */
         .qr-topbar {
-          background: #fff; border-bottom: 1px solid #e2e8f0;
+          background: rgba(255,255,255,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid #e2e8f0;
           padding: 18px 32px; display: flex; align-items: center;
           justify-content: space-between; position: sticky; top: 0; z-index: 50;
         }
@@ -170,6 +170,7 @@ export default function QRPayment() {
           font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;
         }
         .qr-tab.active { background: #1d4ed8; color: #fff; box-shadow: 0 2px 8px rgba(29,78,216,.25); }
+        .qr-tab.active { background: linear-gradient(135deg,#1d4ed8,#0b72e7); }
         .qr-tab:not(.active):hover { background: #f1f5f9; color: #1e293b; }
 
         /* Two-col layout */
@@ -214,7 +215,7 @@ export default function QRPayment() {
         .qr-scan-btn {
           display: block; width: calc(100% - 44px); margin: 0 22px 22px;
           padding: 13px; border-radius: 12px; border: none;
-          background: linear-gradient(135deg, #1d4ed8, #4f46e5); color: #fff;
+          background: linear-gradient(135deg, #1d4ed8, #0b72e7); color: #fff;
           font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s;
           box-shadow: 0 4px 14px rgba(29,78,216,.3);
         }
@@ -233,7 +234,7 @@ export default function QRPayment() {
         .qr-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .qr-proceed-btn {
           width: 100%; padding: 13px; border-radius: 12px; border: none;
-          background: linear-gradient(135deg, #1d4ed8, #4f46e5); color: #fff;
+          background: linear-gradient(135deg, #1d4ed8, #0b72e7); color: #fff;
           font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s;
           box-shadow: 0 4px 14px rgba(29,78,216,.3); margin-top: 4px;
         }
@@ -260,7 +261,7 @@ export default function QRPayment() {
         .qr-btn-cancel:hover { background: #f8fafc; }
         .qr-btn-pay {
           padding: 12px; border-radius: 10px; border: none;
-          background: linear-gradient(135deg,#1d4ed8,#4f46e5); color: #fff;
+          background: linear-gradient(135deg,#1d4ed8,#0b72e7); color: #fff;
           font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
           box-shadow: 0 4px 12px rgba(29,78,216,.3);
         }
@@ -309,7 +310,7 @@ export default function QRPayment() {
         }
         .qr-new-pay {
           margin-top: 8px; padding: 12px 32px; border-radius: 12px; border: none;
-          background: linear-gradient(135deg,#1d4ed8,#4f46e5); color: #fff;
+          background: linear-gradient(135deg,#1d4ed8,#0b72e7); color: #fff;
           font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
           box-shadow: 0 4px 12px rgba(29,78,216,.3);
         }
@@ -318,7 +319,7 @@ export default function QRPayment() {
         /* ── MY QR CODE TAB ── */
         .qr-myqr-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 28px 22px; }
         .qr-myqr-card {
-          background: linear-gradient(135deg,#1d4ed8 0%,#4f46e5 60%,#1d4ed8 100%);
+          background: linear-gradient(135deg,#1d4ed8 0%,#0b72e7 60%,#0284c7 100%);
           border-radius: 20px; padding: 28px; display: flex; flex-direction: column;
           align-items: center; gap: 14px; box-shadow: 0 10px 40px rgba(37,99,235,.3);
           color: #fff; width: 100%; max-width: 320px;

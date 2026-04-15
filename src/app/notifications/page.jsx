@@ -166,7 +166,7 @@ export default function Notifications() {
 
         /* Top bar */
         .nf-topbar {
-          background: #fff; border-bottom: 1px solid #e2e8f0;
+          background: rgba(255,255,255,.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid #e2e8f0;
           padding: 18px 32px; display: flex; align-items: center;
           justify-content: space-between; position: sticky; top: 0; z-index: 50;
         }
@@ -205,7 +205,7 @@ export default function Notifications() {
           background: transparent; color: #64748b;
         }
         .nf-filter-btn.active {
-          background: #1d4ed8; color: #fff;
+          background: linear-gradient(135deg,#1d4ed8,#0b72e7); color: #fff;
           box-shadow: 0 2px 8px rgba(29,78,216,0.25);
         }
         .nf-filter-btn:not(.active):hover { background: #f1f5f9; color: #1e293b; }

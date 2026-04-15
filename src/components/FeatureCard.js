@@ -1,7 +1,9 @@
 export default function FeatureCard({ icon, title, description, features }) {
   return (
     <div className="feature-card">
-      <div className="feature-icon">{icon}</div>
+      <div className="feature-icon-shell">
+        <div className="feature-icon">{icon}</div>
+      </div>
       <h3 className="feature-title">{title}</h3>
       <p className="feature-description">{description}</p>
       {features && features.length > 0 && (

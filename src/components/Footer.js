@@ -78,7 +78,7 @@ export default function Footer({ lang = 'en', dict = {}, layoutState = 'default'
 
         <div className="footer-bottom">
           <p>{footer.copyright || `© ${currentYear} PayShield. All rights reserved.`}</p>
-          <p>{footer.builtWith || 'Built with advanced cryptography and AI-powered security'}</p>
+          <p>{footer.builtWith || 'Built for secure, modern payment experiences.'}</p>
         </div>
       </div>
     </footer>
