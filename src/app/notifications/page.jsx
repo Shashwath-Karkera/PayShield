@@ -126,11 +126,11 @@ const PRIORITY_COLOR = {
 };
 
 const TAG_COLORS = {
-  'Geo-Block':    '#7c3aed', 'Honeypot Active': '#dc2626', 'UPI': '#2563eb',
+  'Geo-Block':    '#1d4ed8', 'Honeypot Active': '#dc2626', 'UPI': '#2563eb',
   'Verified':     '#059669', 'Device DNA':       '#0891b2', 'Blocked': '#dc2626',
   'Credit':       '#059669', 'Auto-Scan':        '#64748b', 'All Clear': '#059669',
-  'AI Monitor':   '#7c3aed', 'Flagged':          '#b45309', 'RSA': '#0891b2',
-  'Auto-Renew':   '#059669', 'Geo-Auth':         '#7c3aed', 'Updated': '#2563eb',
+  'AI Monitor':   '#1d4ed8', 'Flagged':          '#b45309', 'RSA': '#0891b2',
+  'Auto-Renew':   '#059669', 'Geo-Auth':         '#1d4ed8', 'Updated': '#2563eb',
 };
 
 export default function Notifications() {

@@ -89,7 +89,7 @@ export default function TermsPrivacy() {
         .tp-body { max-width:820px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:24px; }
 
         .tp-hero {
-          background:linear-gradient(135deg,#1d4ed8 0%,#4f46e5 50%,#7c3aed 100%);
+          background:linear-gradient(135deg,#1d4ed8 0%,#4f46e5 50%,#1d4ed8 100%);
           border-radius:20px;padding:32px;color:#fff;
           display:flex;align-items:center;gap:20px;
           box-shadow:0 10px 40px rgba(37,99,235,.3);

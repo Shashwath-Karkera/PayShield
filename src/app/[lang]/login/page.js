@@ -166,9 +166,9 @@ export default function Login() {
       <div className="auth-container">
         <div className="auth-box">
           <div className="auth-header">
-            <div className="auth-icon"><AppIcon name="shieldCheck" size={24} /></div>
-            <h1>{loginDict.title || 'Welcome Back'}</h1>
-            <p>{loginDict.subtitle || 'Sign in to access your secure payment workspace.'}</p>
+            <div className="auth-icon" style={{ color: 'var(--primary-color)', display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}><AppIcon name="shieldCheck" size={48} /></div>
+            <h1>{loginDict.title || 'Platform Access'}</h1>
+            <p>{loginDict.subtitle || 'Authorize access to your enterprise financial portal.'}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">

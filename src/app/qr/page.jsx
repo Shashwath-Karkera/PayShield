@@ -318,7 +318,7 @@ export default function QRPayment() {
         /* ── MY QR CODE TAB ── */
         .qr-myqr-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 28px 22px; }
         .qr-myqr-card {
-          background: linear-gradient(135deg,#1d4ed8 0%,#4f46e5 60%,#7c3aed 100%);
+          background: linear-gradient(135deg,#1d4ed8 0%,#4f46e5 60%,#1d4ed8 100%);
           border-radius: 20px; padding: 28px; display: flex; flex-direction: column;
           align-items: center; gap: 14px; box-shadow: 0 10px 40px rgba(37,99,235,.3);
           color: #fff; width: 100%; max-width: 320px;
