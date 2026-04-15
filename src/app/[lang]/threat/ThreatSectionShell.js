@@ -1,52 +1,68 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function ThreatSectionShell({ title, subtitle, children }) {
   const pathname = usePathname();
   const lang = (pathname || "").split("/").filter(Boolean)[0] || "en";
+  const pagePath = `/${(pathname || "").split("/").filter(Boolean).slice(0, 3).join("/")}`;
   const gridLabel = {
     en: "Threat Analytics",
-    hi: "à¤–à¤¤à¤°à¤¾ à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£",
-    kn: "à²¬à³†à²¦à²°à²¿à²•à³† à²µà²¿à²¶à³à²²à³‡à²·à²£à³†"
+    hi: "Threat Analytics",
+    kn: "Threat Analytics",
   }[lang] || "Threat Analytics";
 
+  const tabs = [
+    { label: "Overview", href: `/${lang}/threat` },
+    { label: "Incidents", href: `/${lang}/threat/incidents` },
+    { label: "Forensics", href: `/${lang}/threat/forensics` },
+    { label: "Honeypots", href: `/${lang}/threat/honeypots` },
+    { label: "Settings", href: `/${lang}/threat/settings` },
+  ];
+
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="w-full flex-1"
-    >
-      <div className="max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-10 mb-20 overflow-x-hidden relative">
-        <div className="relative flex flex-col gap-2 pb-6 border-b border-slate-200 mb-8 bg-slate-50 sticky top-0 z-10">
-          <div className="flex items-center gap-2 text-[10px] md: text-indigo-600  tracking-[0.2em] ">
+    <section className="page-shell page-home page-container">
+      <div className="container">
+        <div className="section-header page-header-left mb-6">
+          <div className="section-kicker mb-3">
             <span>{gridLabel}</span>
-            <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="text-slate-800">{title}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-indigo-400" />
+            <span>{title}</span>
           </div>
 
-          <h1 className=" md: lg:  text-slate-900  leading-tight">
-            {title}
-          </h1>
-          
-          {subtitle && (
-            <p className=" md:text-base text-slate-600 font-medium leading-relaxed max-w-3xl mt-1">
-              {subtitle}
-            </p>
-          )}
-          
-          <div className="absolute -bottom-[1px] left-0 w-32 h-[3px] bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full" />
+          <h1 className="section-title mb-3 text-left">{title}</h1>
+
+          {subtitle && <p className="section-subtitle mx-0 text-left">{subtitle}</p>}
         </div>
 
-        <div className="w-full min-w-0">
-          {children}
+        <div className="content-card mb-6 overflow-x-auto rounded-2xl p-2">
+          <div className="flex min-w-max items-center gap-2">
+            {tabs.map((tab) => {
+              const isActive = pagePath === tab.href;
+              return (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  className={[
+                    "inline-flex h-10 items-center rounded-xl px-4 text-sm font-semibold transition-colors whitespace-nowrap",
+                    isActive
+                      ? "bg-indigo-600 text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                  ].join(" ")}
+                >
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
+
+        <div className="w-full min-w-0">{children}</div>
       </div>
-    </motion.section>
+    </section>
   );
 }
 

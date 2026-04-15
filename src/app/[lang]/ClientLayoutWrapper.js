@@ -5,15 +5,10 @@ import { usePathname } from "next/navigation";
 
 export default function ClientLayoutWrapper({ children, navbar, footer }) {
   const pathname = usePathname();
-  const isThreat = pathname && pathname.includes("/threat");
   const isAuthRoute = pathname && (pathname.includes("/login") || pathname.includes("/register") || pathname.includes("/verify"));
-  const isAppRoute = pathname && (pathname.includes("/dashboard") || pathname.includes("/payment") || pathname.includes("/bank-credentials"));
+  const isAppRoute = pathname && (pathname.includes("/dashboard") || pathname.includes("/payment") || pathname.includes("/bank-credentials") || pathname.includes("/threat"));
 
   const layoutState = isAuthRoute ? "auth" : isAppRoute ? "app" : "default";
-
-  if (isThreat) {
-    return <main className="site-main site-main-threat w-full">{children}</main>;
-  }
 
   const withLayoutState = (element) => {
     if (!isValidElement(element)) {

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Server, Activity, Plus, Trash2, ShieldCheck, HelpCircle, Network, AlertTriangle } from "lucide-react";
+import { Server, Activity, Plus, Trash2, ShieldCheck, Network, AlertTriangle } from "lucide-react";
 import ThreatSectionShell from "../ThreatSectionShell";
 
 const INITIAL_HONEYPOTS = [
@@ -18,8 +18,8 @@ export default function HoneypotsPage() {
   const simulateDeploy = () => {
     setIsDeploying(true);
     setTimeout(() => {
-      setPots([
-        ...pots,
+      setPots((prev) => [
+        ...prev,
         {
           id: Date.now(),
           name: `Decoy Node ${Math.floor(Math.random() * 1000)}`,
@@ -57,27 +57,27 @@ export default function HoneypotsPage() {
   };
 
   return (
-    <ThreatSectionShell 
-      title="Deception Network" 
+    <ThreatSectionShell
+      title="Deception Network"
       subtitle="Deploy and monitor honeypots to attract, analyze, and divert attackers."
     >
-      <div className="flex flex-col w-full gap-6 lg:gap-8">
+      <div className="flex flex-col w-full gap-8 lg:gap-10">
 
         {/* Action Bar */}
-        <div className="bg-white p-4 lg:p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 w-full">
-          <div>
-            <h3 className="  text-slate-900 flex items-center gap-2">
+        <div className="content-card flex w-full flex-col items-stretch justify-between gap-4 rounded-3xl p-5 lg:flex-row lg:items-center lg:p-7">
+          <div className="min-w-0">
+            <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
               <Network className="w-5 h-5 text-indigo-500" />
               Active Decoy Grid
             </h3>
-            <p className="  text-slate-500 mt-1  ">
+            <p className="mt-1 text-sm font-medium text-slate-500">
               {pots.length} Node(s) Online • {pots.reduce((a, b) => a + b.captures, 0)} Threats Captured
             </p>
           </div>
           <button
             onClick={simulateDeploy}
             disabled={isDeploying}
-            className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white     rounded-xl shadow-sm shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 shrink-0"
+            className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-indigo-500/20 transition-all hover:bg-indigo-700 disabled:bg-indigo-400 lg:w-auto"
           >
             {isDeploying ? (
               <>
@@ -94,9 +94,9 @@ export default function HoneypotsPage() {
         </div>
 
         {/* Nodes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 w-full">
+        <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 lg:gap-7">
           <AnimatePresence>
-            {pots.map((pot, i) => (
+            {pots.map((pot) => (
               <motion.div
                 layout
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -104,43 +104,43 @@ export default function HoneypotsPage() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
                 key={pot.id}
-                className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-md hover:border-slate-300 transition-all w-full relative"
+                className="content-card relative flex w-full flex-col overflow-hidden rounded-3xl p-0 transition-all hover:border-slate-300 hover:shadow-md"
               >
                 {/* Status Indicator Bar */}
                 <div className={`h-1.5 w-full ${pot.status === 'Compromised' ? 'bg-red-500' : pot.status === 'Active' ? 'bg-emerald-500' : 'bg-indigo-400'}`} />
                 
-                <div className="p-5 lg:p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50 group-hover:bg-white transition-colors relative">
+                <div className="relative flex items-start justify-between border-b border-slate-100 bg-slate-50/50 p-6 transition-colors group-hover:bg-white lg:p-7">
                    {pot.status === 'Compromised' && (
                      <div className="absolute top-4 right-4 animate-pulse">
                         <AlertTriangle className="w-5 h-5 text-red-500" />
                      </div>
                    )}
                    <div>
-                     <span className={`inline-block px-2.5 py-1 rounded-lg border text-[10px]    mb-3 ${getTypeColor(pot.type)}`}>
+                    <span className={`mb-3 inline-block rounded-lg border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${getTypeColor(pot.type)}`}>
                         {pot.type}
                      </span>
-                     <h3 className="  text-slate-900 leading-tight pr-8">{pot.name}</h3>
-                     <p className=" font-mono font-medium text-slate-500 mt-1 bg-white border border-slate-200 px-2 py-0.5 rounded shadow-sm inline-block">
+                    <h3 className="pr-8 text-lg font-bold leading-tight text-slate-900 wrap-break-word">{pot.name}</h3>
+                    <p className="mt-1 inline-block rounded border border-slate-200 bg-white px-2 py-0.5 font-mono text-xs font-medium text-slate-500 shadow-sm">
                         IP: {pot.ip}
                      </p>
                    </div>
                 </div>
 
-                <div className="p-5 lg:p-6 flex-1 bg-white grid grid-cols-2 gap-4">
+                <div className="grid flex-1 grid-cols-2 gap-4 bg-white p-6 lg:p-7">
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center">
                     <Activity className={`w-6 h-6 mb-2 ${pot.captures > 0 ? 'text-indigo-500' : 'text-slate-400'}`} />
-                    <span className="  text-slate-900 leading-none">{pot.captures}</span>
-                    <span className="text-[10px]    text-slate-500 mt-1">Intrusions</span>
+                    <span className="text-2xl font-bold leading-none text-slate-900">{pot.captures}</span>
+                    <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Intrusions</span>
                   </div>
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center">
                     <Server className="w-6 h-6 mb-2 text-emerald-500" />
-                    <span className=" font-bold text-slate-900 leading-none mt-1">{pot.uptime}</span>
-                    <span className="text-[10px]    text-slate-500 mt-1">Uptime</span>
+                    <span className="mt-1 text-base font-bold leading-none text-slate-900">{pot.uptime}</span>
+                    <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Uptime</span>
                   </div>
                 </div>
 
-                <div className="p-4 lg:p-5 border-t border-slate-100 bg-slate-50/80 flex justify-between items-center rounded-b-3xl">
-                  <span className={`px-3 py-1.5 rounded-xl text-[10px]    border flex items-center gap-1.5 ${getStatusColor(pot.status)}`}>
+                <div className="flex items-center justify-between rounded-b-3xl border-t border-slate-100 bg-slate-50/80 p-5 lg:p-6">
+                  <span className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${getStatusColor(pot.status)}`}>
                     {pot.status === "Active" && <ShieldCheck className="w-3.5 h-3.5" />}
                     {pot.status}
                   </span>
@@ -161,14 +161,14 @@ export default function HoneypotsPage() {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={`bg-slate-50 rounded-3xl border-2 border-dashed border-slate-300 shadow-sm flex flex-col items-center justify-center p-8 text-center transition-all min-h-[300px] w-full ${isDeploying ? 'opacity-50 pointer-events-none' : 'hover:bg-indigo-50/50 hover:border-indigo-300 cursor-pointer group'}`}
+            className={`content-card bg-slate-50 rounded-3xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center transition-all min-h-75 w-full ${isDeploying ? 'opacity-50 pointer-events-none' : 'hover:bg-indigo-50/50 hover:border-indigo-300 cursor-pointer group'}`}
             onClick={simulateDeploy}
           >
              <div className="w-16 h-16 rounded-full bg-white border border-slate-200 flex items-center justify-center mb-4 group-hover:bg-indigo-600 transition-colors shadow-sm group-hover:shadow-indigo-500/30">
                 <Plus className="w-8 h-8 text-slate-400 group-hover:text-white transition-colors" />
              </div>
-             <h3 className="  text-slate-900 mb-1 group-hover:text-indigo-900 transition-colors">Expand Network</h3>
-             <p className="  text-slate-500   max-w-[200px]">Click to deploy a new deception node into the proxy zone.</p>
+             <h3 className="mb-1 text-lg font-bold text-slate-900 transition-colors group-hover:text-indigo-900">Expand Network</h3>
+             <p className="max-w-55 text-sm font-medium text-slate-500">Click to deploy a new deception node into the proxy zone.</p>
           </motion.div>
         </div>
       </div>
