@@ -16,6 +16,8 @@ export default function VerifyPage() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [context, setContext] = useState(null);
+  const [isLegacyFlow, setIsLegacyFlow] = useState(false);
+  const [legacyIdentity, setLegacyIdentity] = useState({ email: '', phone: '' });
   const [devOtpHints, setDevOtpHints] = useState({ emailOtp: '', smsOtp: '' });
   const [form, setForm] = useState({
     emailOtp: '',
@@ -29,7 +31,18 @@ export default function VerifyPage() {
 
   useEffect(() => {
     const sessionToken = localStorage.getItem('ps_session_token');
+    const email = localStorage.getItem('ps_user_email') || '';
+    const phone = localStorage.getItem('ps_user_phone') || '';
+    const canUseLegacyOtpFlow = Boolean(email && phone);
+
     if (!sessionToken || !verificationId) {
+      if (canUseLegacyOtpFlow) {
+        setIsLegacyFlow(true);
+        setLegacyIdentity({ email, phone });
+        setFetching(false);
+        return;
+      }
+
       router.push(`/${lang}/login`);
       return;
     }
@@ -69,6 +82,62 @@ export default function VerifyPage() {
     setMessage('');
 
     try {
+      if (isLegacyFlow) {
+        const emailVerifyRes = await fetch('/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identifier: legacyIdentity.email,
+            otp: form.emailOtp,
+            type: 'email'
+          })
+        });
+
+        const emailVerifyData = await emailVerifyRes.json();
+        if (!emailVerifyRes.ok || !emailVerifyData.success) {
+          throw new Error(emailVerifyData.error || 'Email OTP verification failed.');
+        }
+
+        const smsVerifyRes = await fetch('/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identifier: legacyIdentity.phone,
+            otp: form.smsOtp,
+            type: 'phone'
+          })
+        });
+
+        const smsVerifyData = await smsVerifyRes.json();
+        if (!smsVerifyRes.ok || !smsVerifyData.success) {
+          throw new Error(smsVerifyData.error || 'SMS OTP verification failed.');
+        }
+
+        if (smsVerifyData.token) {
+          localStorage.setItem('ps_session_token', smsVerifyData.token);
+          localStorage.setItem('token', smsVerifyData.token);
+        }
+
+        if (smsVerifyData.refreshToken) {
+          localStorage.setItem('refreshToken', smsVerifyData.refreshToken);
+        }
+
+        setMessageType('success');
+        setMessage('Verification successful. Redirecting...');
+
+        setTimeout(() => {
+          localStorage.removeItem('ps_dev_email_otp');
+          localStorage.removeItem('ps_dev_sms_otp');
+          if (smsVerifyData.isFullyVerified) {
+            router.push(`/${lang}/dashboard`);
+          } else {
+            router.push(`/${lang}/login`);
+          }
+        }, 700);
+
+        return;
+      }
+
       const device = collectDeviceFingerprint();
       const network = getClientNetworkInfo();
 
@@ -117,6 +186,42 @@ export default function VerifyPage() {
   const onResendOtp = async () => {
     setMessage('');
     try {
+      if (isLegacyFlow) {
+        const [emailRes, smsRes] = await Promise.all([
+          fetch('/api/auth/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: legacyIdentity.email, type: 'email' })
+          }),
+          fetch('/api/auth/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: legacyIdentity.phone, type: 'phone' })
+          })
+        ]);
+
+        const emailData = await emailRes.json();
+        const smsData = await smsRes.json();
+
+        if (!emailRes.ok || !emailData.success) {
+          throw new Error(emailData.error || 'Unable to resend email OTP.');
+        }
+
+        if (!smsRes.ok || !smsData.success) {
+          throw new Error(smsData.error || 'Unable to resend SMS OTP.');
+        }
+
+        if (emailData.testOtp || smsData.testOtp) {
+          localStorage.setItem('ps_dev_email_otp', emailData.testOtp || '');
+          localStorage.setItem('ps_dev_sms_otp', smsData.testOtp || '');
+          setDevOtpHints({ emailOtp: emailData.testOtp || '', smsOtp: smsData.testOtp || '' });
+        }
+
+        setMessageType('success');
+        setMessage('OTP resent successfully.');
+        return;
+      }
+
       const res = await authFetch('/api/auth/verify/resend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -173,6 +278,16 @@ export default function VerifyPage() {
               <p><strong>Risk Reasons:</strong> {context.riskReasons.join(' | ')}</p>
             ) : null}
           </div>
+        ) : isLegacyFlow ? (
+          <div className="info-box" style={{ marginBottom: 12 }}>
+            <p><strong>Email:</strong> {legacyIdentity.email}</p>
+            <p><strong>Phone:</strong> {legacyIdentity.phone}</p>
+            {devOtpHints.emailOtp || devOtpHints.smsOtp ? (
+              <p>
+                <strong>Dev OTP:</strong> Email {devOtpHints.emailOtp || 'N/A'} | SMS {devOtpHints.smsOtp || 'N/A'}
+              </p>
+            ) : null}
+          </div>
         ) : null}
 
         <form onSubmit={onSubmit} className="auth-form">
@@ -186,27 +301,31 @@ export default function VerifyPage() {
             <input name="smsOtp" value={form.smsOtp} onChange={onChange} maxLength={6} required className="form-input" />
           </div>
 
-          <div className="form-group">
-            <label>SIM Slot</label>
-            <select name="simSlot" value={form.simSlot} onChange={onChange} className="form-input">
-              <option value="SIM1">SIM1</option>
-              <option value="SIM2">SIM2</option>
-            </select>
-          </div>
+          {!isLegacyFlow ? (
+            <>
+              <div className="form-group">
+                <label>SIM Slot</label>
+                <select name="simSlot" value={form.simSlot} onChange={onChange} className="form-input">
+                  <option value="SIM1">SIM1</option>
+                  <option value="SIM2">SIM2</option>
+                </select>
+              </div>
 
-          <div className="form-group">
-            <label>{context?.needsPinSetup ? 'Set PayShield PIN' : 'PayShield PIN'}</label>
-            <input
-              type="password"
-              name="payShieldPin"
-              value={form.payShieldPin}
-              onChange={onChange}
-              required
-              className="form-input"
-            />
-          </div>
+              <div className="form-group">
+                <label>{context?.needsPinSetup ? 'Set PayShield PIN' : 'PayShield PIN'}</label>
+                <input
+                  type="password"
+                  name="payShieldPin"
+                  value={form.payShieldPin}
+                  onChange={onChange}
+                  required
+                  className="form-input"
+                />
+              </div>
+            </>
+          ) : null}
 
-          {context?.needsPinSetup ? (
+          {context?.needsPinSetup && !isLegacyFlow ? (
             <div className="form-group">
               <label>Confirm PayShield PIN</label>
               <input

@@ -15,13 +15,21 @@ export default function ClientLayoutWrapper({ children, navbar, footer }) {
     return <main className="w-full">{children}</main>;
   }
 
-  const navbarWithState = isValidElement(navbar)
-    ? cloneElement(navbar, { layoutState })
-    : navbar;
+  const withLayoutState = (element) => {
+    if (!isValidElement(element)) {
+      return element;
+    }
 
-  const footerWithState = isValidElement(footer)
-    ? cloneElement(footer, { layoutState })
-    : footer;
+    // Avoid forwarding custom props to intrinsic DOM elements (e.g., <div>, <nav>).
+    if (typeof element.type === "string") {
+      return element;
+    }
+
+    return cloneElement(element, { layoutState });
+  };
+
+  const navbarWithState = withLayoutState(navbar);
+  const footerWithState = withLayoutState(footer);
 
   return (
     <>
