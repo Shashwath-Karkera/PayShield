@@ -105,7 +105,7 @@ export async function POST(request) {
 
     const [emailResult, smsResult] = await Promise.all([
       sendEmailOtp({ toEmail: challenge.user.email, otpCode: emailOtp }),
-      sendSmsOtp({ toEmail: challenge.user.email, otpCode: smsOtp })
+      sendSmsOtp({ toPhone: challenge.user.phone, toEmail: challenge.user.email, otpCode: smsOtp })
     ]);
 
     await prisma.$transaction([

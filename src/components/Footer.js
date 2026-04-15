@@ -1,9 +1,24 @@
 import Link from 'next/link';
 import AppIcon from '@/components/AppIcon';
 
-export default function Footer({ lang = 'en', dict = {} }) {
+export default function Footer({ lang = 'en', dict = {}, layoutState = 'default' }) {
   const currentYear = new Date().getFullYear();
   const footer = dict.footer || {};
+  const isAuth = layoutState === 'auth';
+  const isApp = layoutState === 'app';
+
+  if (isAuth) {
+    return (
+      <footer className="footer">
+        <div className="footer-container">
+          <div className="footer-bottom" style={{ borderTop: 'none', paddingTop: 0 }}>
+            <p>{footer.copyright || `© ${currentYear} PayShield. All rights reserved.`}</p>
+            <p>{footer.builtWith || 'Secure onboarding with multi-factor verification.'}</p>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="footer">
@@ -22,10 +37,21 @@ export default function Footer({ lang = 'en', dict = {} }) {
           <div className="footer-section">
             <h4 className="footer-heading">{footer.productTitle || 'Product'}</h4>
             <ul className="footer-links">
-              <li><Link href={`/${lang}/features`}>{footer.productFeatures || 'Features'}</Link></li>
-              <li><Link href={`/${lang}/security`}>{footer.productSecurity || 'Security'}</Link></li>
-              <li><Link href={`/${lang}/register`}>{footer.productSignUp || 'Sign Up'}</Link></li>
-              <li><Link href={`/${lang}/login`}>{footer.productLogin || 'Login'}</Link></li>
+              {isApp ? (
+                <>
+                  <li><Link href={`/${lang}/dashboard`}>Dashboard</Link></li>
+                  <li><Link href={`/${lang}/payment`}>Payments</Link></li>
+                  <li><Link href={`/${lang}/bank-credentials`}>Bank Setup</Link></li>
+                  <li><Link href={`/${lang}/security`}>{footer.productSecurity || 'Security'}</Link></li>
+                </>
+              ) : (
+                <>
+                  <li><Link href={`/${lang}/features`}>{footer.productFeatures || 'Features'}</Link></li>
+                  <li><Link href={`/${lang}/security`}>{footer.productSecurity || 'Security'}</Link></li>
+                  <li><Link href={`/${lang}/register`}>{footer.productSignUp || 'Sign Up'}</Link></li>
+                  <li><Link href={`/${lang}/login`}>{footer.productLogin || 'Login'}</Link></li>
+                </>
+              )}
             </ul>
           </div>
 

@@ -89,12 +89,24 @@ export default function Register() {
       localStorage.setItem('ps_user_id', payload.user.id);
       localStorage.setItem('ps_user_email', payload.user.email);
       localStorage.setItem('ps_user_name', payload.user.name);
+      if (payload.sessionToken) {
+        localStorage.setItem('ps_session_token', payload.sessionToken);
+      }
+      if (payload.verification?.id) {
+        localStorage.setItem('ps_verification_id', payload.verification.id);
+      }
+      if (payload.verification?.devEmailOtp) {
+        localStorage.setItem('ps_dev_email_otp', payload.verification.devEmailOtp);
+      }
+      if (payload.verification?.devSmsOtp) {
+        localStorage.setItem('ps_dev_sms_otp', payload.verification.devSmsOtp);
+      }
 
       setMessageType('success');
-      setMessage('Registration successful. Redirecting to secure login...');
+      setMessage('Registration successful. Redirecting to verification...');
 
       setTimeout(() => {
-        router.push(`/${currentLang}/login`);
+        router.push(`/${currentLang}/verify?verificationId=${payload.verification?.id || ''}`);
       }, 800);
     } catch (error) {
       setMessageType('error');
