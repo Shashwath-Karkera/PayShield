@@ -16,26 +16,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "PayShield - Military-Grade Payment Security",
-  description: "Next-generation payment security with multi-layer protection, AI-powered behavioral analytics, and real-time threat detection.",
+  title: "PayShield | Secure Payments",
+  description: "Professional payment operations with a modern blue-first security experience.",
 };
 
 export default async function RootLayout(props) {
-  // Await the params promise in Next.js 15+ properly before rendering
   const params = await props.params;
   const lang = params?.lang || "en";
   const dict = await getDictionary(lang);
 
   return (
-    <html lang={lang}>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClientLayoutWrapper 
-          navbar={<Navbar />} 
-          footer={<Footer lang={lang} dict={dict} />}
-        >
-          {props.children}
-        </ClientLayoutWrapper>
-      </body>
-    </html>
+    <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <ClientLayoutWrapper
+        navbar={<Navbar />}
+        footer={<Footer lang={lang} dict={dict} />}
+      >
+        {props.children}
+      </ClientLayoutWrapper>
+    </div>
   );
 }

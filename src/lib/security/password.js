@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
+import argon2 from 'argon2';
 
 function getPepper() {
   const pepper = process.env.SPICE_PEPPER_KEY;
@@ -22,12 +22,21 @@ function buildSpicedInput(password, spiceSalt) {
 export async function createSpicePasswordHash(password) {
   const spiceSalt = generateSpiceSalt();
   const spicedInput = buildSpicedInput(password, spiceSalt);
-  const passwordHash = await bcrypt.hash(spicedInput, 12);
+  const passwordHash = await argon2.hash(spicedInput, {
+    type: argon2.argon2id,
+    memoryCost: 65536,
+    timeCost: 3,
+    parallelism: 1
+  });
 
   return { passwordHash, spiceSalt };
 }
 
 export async function verifySpicePassword(password, spiceSalt, storedHash) {
   const spicedInput = buildSpicedInput(password, spiceSalt);
-  return bcrypt.compare(spicedInput, storedHash);
+  try {
+    return await argon2.verify(storedHash, spicedInput);
+  } catch {
+    return false;
+  }
 }

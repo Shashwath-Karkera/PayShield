@@ -5,11 +5,215 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum TransactionStatus {
+  SUCCESS
+  FLAGGED
+  DECLINED
+  FROZEN
+}
+
+enum LedgerType {
+  REAL
+  MIRROR
+}
+
+model User {
+  id                       String   @id @default(cuid())
+  email                    String   @unique
+  name                     String
+  phone                    String?
+  passwordHash             String
+  spiceSalt                String
+  balance                  Decimal  @default(0) @db.Decimal(18, 2)
+  isFrozen                 Boolean  @default(false)
+  frozenReason             String?
+  childhoodWhisperMotherEnc String
+  childhoodWhisperPetEnc   String
+  lastKnownCountry         String?
+  lastKnownCity            String?
+  lastKnownIp              String?
+  lastKnownDeviceDna       String?
+  genuinityScore           Int      @default(100)
+  payShieldPinHash         String?
+  registeredSimSlot        String   @default("SIM1")
+  bankOnboardingCompleted  Boolean  @default(false)
+  firstLoginCompleted      Boolean  @default(false)
+  lastLoginAt              DateTime?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  bankCredentials  BankCredential[]
+  transactions     Transaction[]
+  behavioralLogs   BehavioralLog[]
+  securityEvents   SecurityEvent[]
+  deviceCredentials DeviceCredential[]
+  loginChallenges  LoginChallenge[]
+  sessions         Session[]
+  authVerifications AuthVerification[]
+}
+
+model DeviceCredential {
+  id             String   @id @default(cuid())
+  userId         String
+  deviceDna      String
+  deviceName     String?
+  publicKeyPem   String
+  browserSignature String?
+  screenResolution String?
+  trusted        Boolean  @default(true)
+  lastSeenIp     String?
+  lastSeenCountry String?
+  lastSeenCity   String?
+  createdAt      DateTime @default(now())
+  lastUsedAt     DateTime?
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loginChallenges LoginChallenge[]
+  sessions        Session[]
+
+  @@unique([userId, deviceDna])
+}
+
+model LoginChallenge {
+  id             String   @id @default(cuid())
+  userId         String
+  deviceCredentialId String?
+  challenge      String
+  ipAddress      String
+  locationCountry String?
+  locationCity   String?
+  riskScore      Float    @default(0)
+  riskReasons    Json?
+  expiresAt      DateTime
+  consumedAt     DateTime?
+  createdAt      DateTime @default(now())
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceCredential DeviceCredential? @relation(fields: [deviceCredentialId], references: [id], onDelete: SetNull)
+}
+
+model Session {
+  id               String   @id @default(cuid())
+  token            String   @unique
+  userId           String
+  deviceCredentialId String?
+  ipAddress        String?
+  locationCountry  String?
+  locationCity     String?
+  isVerified       Boolean  @default(false)
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime @default(now())
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceCredential DeviceCredential? @relation(fields: [deviceCredentialId], references: [id], onDelete: SetNull)
+  authVerification AuthVerification?
+}
+
+model AuthVerification {
+  id                    String   @id @default(cuid())
+  userId                String
+  sessionId             String   @unique
+  emailOtpEnc           String
+  smsOtpEnc             String
+  ipAddress             String
+  deviceDna             String
+  locationCountry       String?
+  locationCity          String?
+  riskScore             Float    @default(0)
+  riskReasons           Json?
+  emailOtpVerifiedAt    DateTime?
+  smsOtpVerifiedAt      DateTime?
+  deviceVerifiedAt      DateTime?
+  simVerifiedAt         DateTime?
+  payShieldPinVerifiedAt DateTime?
+  completedAt           DateTime?
+  expiresAt             DateTime
+  createdAt             DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Transaction {
+  id                   String            @id @default(cuid())
+  userId               String
+  amount               Decimal           @db.Decimal(18, 2)
+  payee                String
+  status               TransactionStatus @default(SUCCESS)
+  ledgerType           LedgerType        @default(REAL)
+  locationCountry      String?
+  locationCity         String?
+  ipAddress            String?
+  deviceDna            String?
+  browserSignature     String?
+  screenResolution     String?
+  encryptedPayload     String?
+  mlScore              Float?
+  mlReasons            Json?
+  isTransferAllAttempt Boolean           @default(false)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, ledgerType])
+}
+
+model BehavioralLog {
+  id                  String   @id @default(cuid())
+  userId              String
+  mouseShakeIntensity Int
+  scrollSpeed         Int
+  paymentFrequency    Int
+  transferAllIntent   Boolean  @default(false)
+  locationCountry     String?
+  locationCity        String?
+  ipAddress           String?
+  deviceDna           String?
+  browserSignature    String?
+  screenResolution    String?
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String
+  ipAddress String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+}
+
+model BankCredential {
+  id                String   @id @default(cuid())
+  userId            String
+  bankName          String
+  accountHolderName String
+  encryptedPayload  String
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

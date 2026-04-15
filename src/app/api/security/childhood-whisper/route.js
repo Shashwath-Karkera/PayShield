@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { decryptValue } from '@/lib/security/crypto';
+import { requireSession } from '@/lib/auth/session';
 
 const schema = z.object({
   userId: z.string().min(1),
@@ -18,6 +19,11 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const data = schema.parse(body);
+
+    const auth = await requireSession(request, data.userId);
+    if (!auth.ok) {
+      return auth.response;
+    }
 
     const user = await prisma.user.findUnique({ where: { id: data.userId } });
     if (!user) {
