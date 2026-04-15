@@ -89,6 +89,7 @@ export default function Register() {
       localStorage.setItem('ps_user_id', payload.user.id);
       localStorage.setItem('ps_user_email', payload.user.email);
       localStorage.setItem('ps_user_name', payload.user.name);
+      localStorage.setItem('ps_user_phone', payload.user.phone || formData.phone.trim());
       if (payload.sessionToken) {
         localStorage.setItem('ps_session_token', payload.sessionToken);
       }

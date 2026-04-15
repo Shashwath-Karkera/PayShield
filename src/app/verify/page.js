@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { hashPassword } from '@/lib/auth/utils';
 
-const sql = neon(process.env.DATABASE_URL);
+// Create sql with timeout options
+const sql = neon(process.env.DATABASE_URL, {
+  timeout: 30000, // 30 seconds timeout
+  maxRetries: 3,
+});
 
 export async function POST(request) {
   try {
@@ -25,10 +29,19 @@ export async function POST(request) {
     
     console.log('Registration request:', { email, name, phone });
     
-    // Check if user exists
-    const existingUser = await sql`
-      SELECT * FROM users WHERE email = ${email} OR phone = ${phone}
-    `;
+    // Check if user exists with retry
+    let existingUser = [];
+    try {
+      existingUser = await sql`
+        SELECT * FROM users WHERE email = ${email} OR phone = ${phone}
+      `;
+    } catch (dbError) {
+      console.error('Database connection error, retrying...', dbError.message);
+      // Retry once
+      existingUser = await sql`
+        SELECT * FROM users WHERE email = ${email} OR phone = ${phone}
+      `;
+    }
     
     if (existingUser.length > 0) {
       return NextResponse.json({ error: 'Email already registered.' }, { status: 409 });
@@ -41,7 +54,7 @@ export async function POST(request) {
     const hashedMotherNickname = motherNickname ? await hashPassword(motherNickname.toLowerCase()) : '';
     const hashedFirstPetName = firstPetName ? await hashPassword(firstPetName.toLowerCase()) : '';
     
-    // Create user with isEmailVerified = false, isPhoneVerified = false
+    // Create user
     const result = await sql`
       INSERT INTO users (
         full_name, email, phone, password, mother_nickname, first_pet_name,
@@ -59,7 +72,7 @@ export async function POST(request) {
     
     const user = result[0];
     
-    // Generate OTPs for verification
+    // Generate OTPs
     const emailOtp = Math.floor(100000 + Math.random() * 900000).toString();
     const smsOtp = Math.floor(100000 + Math.random() * 900000).toString();
     
@@ -73,19 +86,12 @@ export async function POST(request) {
         (${phone}, ${smsOtp}, 'phone', NOW() + INTERVAL '10 minutes', NOW())
     `;
     
-    // Send OTPs
-    try {
-      const { sendVerificationEmail } = await import('@/lib/services/emailService');
-      const { sendVerificationSMS } = await import('@/lib/services/smsService');
-      
-      await sendVerificationEmail(email, emailOtp, name);
-      await sendVerificationSMS(phone, smsOtp);
-      console.log('OTPs sent successfully');
-    } catch (err) {
-      console.log('OTP sending note:', err.message);
-    }
+    // Send OTPs (don't wait for them to avoid timeout)
+    Promise.all([
+      import('@/lib/services/emailService').then(mod => mod.sendVerificationEmail(email, emailOtp, name)),
+      import('@/lib/services/smsService').then(mod => mod.sendVerificationSMS(phone, smsOtp))
+    ]).catch(err => console.log('OTP sending error:', err.message));
     
-    // Return response in the format expected by friend's frontend
     return NextResponse.json({
       user: {
         id: user.id,
@@ -96,8 +102,9 @@ export async function POST(request) {
         createdAt: user.created_at
       },
       verificationRequired: true,
+      verificationId: Date.now(),
       verification: {
-        id: Math.floor(Math.random() * 10000),
+        id: Date.now(),
         riskScore: 0,
         riskReasons: ['New registration verification'],
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
@@ -109,7 +116,7 @@ export async function POST(request) {
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json({ 
-      error: 'Failed to register user.', 
+      error: 'Failed to register user. Please try again.', 
       detail: error.message 
     }, { status: 500 });
   }

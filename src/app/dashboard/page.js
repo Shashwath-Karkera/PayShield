@@ -60,18 +60,36 @@ export default function Dashboard() {
     // Check if user is logged in
     const token = localStorage.getItem('token');
     if (!token) {
-      router.push('/login');
+      router.push('/en/login');
       return;
     }
     
-    // Get user info from localStorage
-    const userEmail = localStorage.getItem('userEmail');
-    const userName = localStorage.getItem('userName');
+    // Try to get user info from multiple possible localStorage keys
+    let userEmail = localStorage.getItem('userEmail');
+    let userName = localStorage.getItem('userName');
+    
+    // If they aren't stored individually, check if there's a user object stored
+    const storedUserStr = localStorage.getItem('user');
+    if (storedUserStr) {
+      try {
+        const storedUser = JSON.parse(storedUserStr);
+        userEmail = userEmail || storedUser.email;
+        userName = userName || storedUser.name || storedUser.full_name;
+      } catch (e) {
+        console.error('Failed to parse user from localStorage');
+      }
+    }
+    
+    // Clean up "undefined" or "null" strings that might have been saved accidentally
+    if (userEmail === 'undefined' || userEmail === 'null') userEmail = null;
+    if (userName === 'undefined' || userName === 'null') userName = null;
+    
+    const finalName = userName || (userEmail ? userEmail.split('@')[0] : 'User');
     
     setUser({
-      name: userName || (userEmail ? userEmail.split('@')[0] : 'User'),
+      name: finalName,
       email: userEmail || 'user@example.com',
-      avatar: (userName || (userEmail ? userEmail.split('@')[0] : 'User')).charAt(0).toUpperCase()
+      avatar: finalName.charAt(0).toUpperCase()
     });
     setLoading(false);
   }, [router]);
@@ -81,7 +99,7 @@ export default function Dashboard() {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
-    window.location.href = '/login';
+    window.location.href = '/en/login';
   };
 
   if (loading) {
@@ -98,7 +116,7 @@ export default function Dashboard() {
   return (
     <>
       {/* ── Inline styles ─────────────────────────────────────────────────── */}
-      <style>{`
+      <style precedence="default" href="dashboard-css">{`
         /* Reset dashboard page from global navbar/footer */
         .dashboard-page { display: flex; min-height: 100vh; background: #f1f5f9; font-family: 'Segoe UI', sans-serif; }
 

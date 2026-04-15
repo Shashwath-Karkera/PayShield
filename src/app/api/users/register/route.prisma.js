@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { hashPassword } from '@/lib/auth/utils';
+import { hashPassword, generateToken, generateRefreshToken } from '@/lib/auth/utils';
 
 const sql = neon(process.env.DATABASE_URL);
 
@@ -41,7 +41,7 @@ export async function POST(request) {
     const hashedMotherNickname = motherNickname ? await hashPassword(motherNickname.toLowerCase()) : '';
     const hashedFirstPetName = firstPetName ? await hashPassword(firstPetName.toLowerCase()) : '';
     
-    // Create user with isEmailVerified = false, isPhoneVerified = false
+    // Create user
     const result = await sql`
       INSERT INTO users (
         full_name, email, phone, password, mother_nickname, first_pet_name,
@@ -59,11 +59,13 @@ export async function POST(request) {
     
     const user = result[0];
     
+    // Generate tokens
+    const token = generateToken(user.id, user.email);
+    const refreshToken = generateRefreshToken(user.id);
+    
     // Generate OTPs for verification
     const emailOtp = Math.floor(100000 + Math.random() * 900000).toString();
     const smsOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    console.log(`Generated OTPs - Email: ${emailOtp}, SMS: ${smsOtp}`);
     
     // Store OTPs
     await sql`
@@ -78,32 +80,29 @@ export async function POST(request) {
       const { sendVerificationEmail } = await import('@/lib/services/emailService');
       const { sendVerificationSMS } = await import('@/lib/services/smsService');
       
-      await sendVerificationEmail(email, emailOtp, name);
-      await sendVerificationSMS(phone, smsOtp);
-      console.log('OTPs sent successfully');
+      await Promise.all([
+        sendVerificationEmail(email, emailOtp, name),
+        sendVerificationSMS(phone, smsOtp)
+      ]);
     } catch (err) {
-      console.log('OTP sending note:', err.message);
+      console.log('OTP sending in test mode:', err);
     }
     
-    // Return response in the format expected by friend's frontend
     return NextResponse.json({
+      success: true,
+      token,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
         name: user.full_name,
         phone: user.phone,
-        balance: user.balance || 0,
+        balance: user.balance,
         createdAt: user.created_at
       },
       verificationRequired: true,
-      verification: {
-        id: Math.floor(Math.random() * 10000),
-        riskScore: 0,
-        riskReasons: ['New registration verification'],
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-        devEmailOtp: process.env.NODE_ENV === 'production' ? undefined : emailOtp,
-        devSmsOtp: process.env.NODE_ENV === 'production' ? undefined : smsOtp
-      }
+      devEmailOtp: process.env.NODE_ENV === 'production' ? undefined : emailOtp,
+      devSmsOtp: process.env.NODE_ENV === 'production' ? undefined : smsOtp
     }, { status: 201 });
     
   } catch (error) {

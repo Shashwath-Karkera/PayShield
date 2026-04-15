@@ -64,6 +64,45 @@ export default function Login() {
         throw new Error(loginPayload.error || 'Login failed.');
       }
 
+      // Legacy/direct login flow: backend returns ready-to-use tokens.
+      if (loginPayload.token) {
+        localStorage.setItem('ps_session_token', loginPayload.token);
+        localStorage.setItem('token', loginPayload.token);
+
+        if (loginPayload.refreshToken) {
+          localStorage.setItem('refreshToken', loginPayload.refreshToken);
+        }
+
+        if (loginPayload.user?.id) {
+          localStorage.setItem('ps_user_id', String(loginPayload.user.id));
+        }
+
+        if (loginPayload.user?.email) {
+          localStorage.setItem('ps_user_email', loginPayload.user.email);
+        }
+
+        if (loginPayload.user?.name) {
+          localStorage.setItem('ps_user_name', loginPayload.user.name);
+        }
+
+        if (loginPayload.user?.phone) {
+          localStorage.setItem('ps_user_phone', loginPayload.user.phone);
+        }
+
+        setMessageType('success');
+        setMessage('Login successful. Redirecting...');
+
+        setTimeout(() => {
+          router.push(`/${currentLang}/dashboard`);
+        }, 500);
+
+        return;
+      }
+
+      if (!loginPayload.challenge || !loginPayload.challengeId) {
+        throw new Error('Login challenge data missing from server response.');
+      }
+
       const signature = await signChallenge(keyPair.privateKey, loginPayload.challenge);
 
       const challengeResponse = await fetch('/api/auth/challenge', {

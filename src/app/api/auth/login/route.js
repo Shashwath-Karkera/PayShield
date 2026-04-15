@@ -1,110 +1,63 @@
-import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
-import { verifySpicePassword } from '@/lib/security/password';
-import { evaluateGeoRisk } from '@/lib/security/risk';
-import { generateChallengeToken } from '@/lib/security/device';
+import { NextResponse } from 'next/server';
+import { neon } from '@neondatabase/serverless';
+import { comparePassword, generateToken, generateRefreshToken } from '@/lib/auth/utils';
 
-const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  deviceDna: z.string().min(6),
-  ipAddress: z.string().min(3),
-  locationCountry: z.string().min(2).optional(),
-  locationCity: z.string().min(1).optional(),
-  browserSignature: z.string().min(3).optional(),
-  screenResolution: z.string().min(3).optional(),
-  networkHints: z.string().optional()
-});
+const sql = neon(process.env.DATABASE_URL);
 
 export async function POST(request) {
   try {
-    const payload = schema.parse(await request.json());
-
-    const user = await prisma.user.findUnique({
-      where: { email: payload.email },
-      include: {
-        deviceCredentials: {
-          where: { deviceDna: payload.deviceDna },
-          take: 1
-        }
-      }
-    });
-
+    const payload = await request.json();
+    const { email, password, deviceDna, ipAddress, locationCountry, locationCity, browserSignature, screenResolution } = payload;
+    
+    // Find user
+    const users = await sql`
+      SELECT * FROM users WHERE email = ${email}
+    `;
+    
+    const user = users[0];
+    
     if (!user) {
-      return Response.json({ error: 'Invalid credentials.' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 });
     }
-
-    const passwordOk = await verifySpicePassword(payload.password, user.spiceSalt, user.passwordHash);
-    if (!passwordOk) {
-      await prisma.securityEvent.create({
-        data: {
-          userId: user.id,
-          type: 'LOGIN_PASSWORD_FAILED',
-          ipAddress: payload.ipAddress,
-          metadata: { email: payload.email }
-        }
-      });
-
-      return Response.json({ error: 'Invalid credentials.' }, { status: 401 });
+    
+    // Verify password
+    const isValid = await comparePassword(password, user.password);
+    if (!isValid) {
+      return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 });
     }
-
-    if (user.isFrozen) {
-      return Response.json(
-        { error: 'Account frozen.', reason: user.frozenReason || 'Security lock is active.' },
-        { status: 403 }
-      );
-    }
-
-    const deviceCredential = user.deviceCredentials[0] || null;
-    const geoRisk = await evaluateGeoRisk(user, payload);
-
-    let riskScore = geoRisk.score;
-    const riskReasons = [...geoRisk.reasons];
-
-    if (!deviceCredential) {
-      riskScore = Math.min(0.99, Number((riskScore + 0.35).toFixed(2)));
-      riskReasons.push('Unrecognized device fingerprint.');
-    }
-
-    const challenge = generateChallengeToken();
-    const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
-
-    const challengeRow = await prisma.loginChallenge.create({
-      data: {
-        userId: user.id,
-        deviceCredentialId: deviceCredential?.id,
-        challenge,
-        ipAddress: payload.ipAddress,
-        locationCountry: payload.locationCountry,
-        locationCity: payload.locationCity,
-        riskScore,
-        riskReasons,
-        expiresAt
-      }
-    });
-
-    return Response.json(
-      {
-        challengeId: challengeRow.id,
-        challenge,
-        requiresAdditionalVerification: riskScore >= 0.5,
-        risk: {
-          score: riskScore,
-          reasons: riskReasons
-        },
-        knownDevice: Boolean(deviceCredential),
-        hasDeviceKey: Boolean(deviceCredential?.publicKeyPem)
+    
+    // Generate tokens
+    const token = generateToken(user.id, user.email);
+    const refreshToken = generateRefreshToken(user.id);
+    
+    // Update last login
+    await sql`
+      UPDATE users 
+      SET last_login = NOW(), 
+          device_id = ${deviceDna || user.device_id},
+          location = ${locationCountry || user.location}
+      WHERE id = ${user.id}
+    `;
+    
+    return NextResponse.json({
+      success: true,
+      token,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.full_name,
+        phone: user.phone,
+        balance: user.balance
       },
-      { status: 200 }
-    );
+      requiresAdditionalVerification: false,
+      risk: { score: 0, reasons: [] },
+      knownDevice: true,
+      hasDeviceKey: false
+    });
+    
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return Response.json({ error: 'Validation failed.', issues: error.issues }, { status: 400 });
-    }
-
-    return Response.json(
-      { error: 'Login failed.', detail: String(error.message || error) },
-      { status: 500 }
-    );
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'Login failed.', detail: error.message }, { status: 500 });
   }
 }
