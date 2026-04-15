@@ -12,7 +12,7 @@ export default function ClientLayoutWrapper({ children, navbar, footer }) {
   const layoutState = isAuthRoute ? "auth" : isAppRoute ? "app" : "default";
 
   if (isThreat) {
-    return <main className="w-full">{children}</main>;
+    return <main className="site-main site-main-threat w-full">{children}</main>;
   }
 
   const withLayoutState = (element) => {
@@ -34,7 +34,7 @@ export default function ClientLayoutWrapper({ children, navbar, footer }) {
   return (
     <>
       {navbarWithState}
-      <main>{children}</main>
+      <main className={`site-main site-main-${layoutState}`}>{children}</main>
       {footerWithState}
     </>
   );

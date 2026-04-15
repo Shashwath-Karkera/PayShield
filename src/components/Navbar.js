@@ -11,16 +11,27 @@ export default function Navbar({ layoutState = 'default' }) {
   const [dict, setDict] = useState({});
   const params = useParams();
   const currentLang = params?.lang || 'en';
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
   const router = useRouter();
 
   useEffect(() => {
-    // Dynamic import to avoid SSR errors with relative files depending on the caller
     import(`@/i18n/dictionaries/${currentLang}.json`)
       .then((module) => setDict(module.default.navigation || {}))
       .catch(() => import('@/i18n/dictionaries/en.json').then((m) => setDict(m.default.navigation || {})));
+
+    // Set initial auth state
+    setIsAuthed(Boolean(localStorage.getItem('ps_session_token') || localStorage.getItem('token')));
+    
+    // Listen for auth storage changes
+    const handleStorageChange = () => {
+      setIsAuthed(Boolean(localStorage.getItem('ps_session_token') || localStorage.getItem('token')));
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [currentLang]);
 
+  // Re-check auth state on pathname change for client-side navigation updates
   useEffect(() => {
     setIsAuthed(Boolean(localStorage.getItem('ps_session_token') || localStorage.getItem('token')));
   }, [pathname]);
@@ -47,7 +58,6 @@ export default function Navbar({ layoutState = 'default' }) {
   };
 
   const showMarketingLinks = layoutState === 'default';
-  const showAppLinks = layoutState === 'app';
 
   return (
     <nav className="navbar">
@@ -67,24 +77,30 @@ export default function Navbar({ layoutState = 'default' }) {
         </button>
 
         <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
-          {showMarketingLinks ? (
+          {showMarketingLinks && !isAuthed ? (
             <>
               <Link href={`/${currentLang}`} onClick={() => setMobileMenuOpen(false)}>{dict.home || 'Home'}</Link>
-              <Link href={`/${currentLang}/features`} onClick={() => setMobileMenuOpen(false)}>{dict.features || 'Features'}</Link>
-              <Link href={`/${currentLang}/about`} onClick={() => setMobileMenuOpen(false)}>{dict.about || 'About'}</Link>
-              <Link href={`/${currentLang}/contact`} onClick={() => setMobileMenuOpen(false)}>{dict.contact || 'Contact'}</Link>
+              <Link href={`/${currentLang}/features`} onClick={() => setMobileMenuOpen(false)}>{dict.features || 'Capabilities'}</Link>
+              <Link href={`/${currentLang}/about`} onClick={() => setMobileMenuOpen(false)}>{dict.about || 'Infrastructure'}</Link>
+              <Link href={`/${currentLang}/contact`} onClick={() => setMobileMenuOpen(false)}>{dict.contact || 'Support'}</Link>
             </>
           ) : null}
 
-          {showAppLinks ? (
+          {isAuthed ? (
             <>
               <Link href={`/${currentLang}/dashboard`} onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-              <Link href={`/${currentLang}/payment`} onClick={() => setMobileMenuOpen(false)}>Payments</Link>
-              <Link href={`/${currentLang}/bank-credentials`} onClick={() => setMobileMenuOpen(false)}>Bank Setup</Link>
+              <Link href={`/${currentLang}/payment`} onClick={() => setMobileMenuOpen(false)}>Transfers</Link>
+              <Link href={`/${currentLang}/bank-credentials`} onClick={() => setMobileMenuOpen(false)}>Accounts</Link>
+              <Link href={`/${currentLang}/threat`} onClick={() => setMobileMenuOpen(false)}>Threat Monitors</Link>
             </>
           ) : null}
           
-          <select value={currentLang} onChange={switchLanguage} style={{ backgroundColor: 'transparent', color: 'inherit', border: '1px solid #ccc', padding: '4px', borderRadius: '4px', cursor: 'pointer', margin: '0 8px' }}>
+          <select
+            value={currentLang}
+            onChange={switchLanguage}
+            className="nav-lang-select"
+            aria-label="Select language"
+          >
             <option value="en">Eng</option>
             <option value="hi">हिंदी</option>
             <option value="kn">ಕನ್ನಡ</option>
@@ -96,16 +112,16 @@ export default function Navbar({ layoutState = 'default' }) {
               className="nav-btn login-btn"
               onClick={handleLogout}
             >
-              Logout
+              Log Out Securely
             </button>
           ) : (
             <>
               <Link href={`/${currentLang}/login`} className="nav-btn login-btn" onClick={() => setMobileMenuOpen(false)}>
-                {dict.login || 'Login'}
+                {dict.login || 'Sign In'}
               </Link>
               {layoutState !== 'auth' ? (
                 <Link href={`/${currentLang}/register`} className="nav-btn register-btn" onClick={() => setMobileMenuOpen(false)}>
-                  {dict.register || 'Get Started'}
+                  {dict.register || 'Open Account'}
                 </Link>
               ) : null}
             </>

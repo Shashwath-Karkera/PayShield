@@ -17,7 +17,7 @@ const FAQS = [
 const CATEGORIES = [
   { icon: '🔐', label: 'Account & Security', color: '#1d4ed8' },
   { icon: '💸', label: 'Payments & Transactions', color: '#059669' },
-  { icon: '📱', label: 'Device & App Issues', color: '#7c3aed' },
+  { icon: '📱', label: 'Device & App Issues', color: '#1d4ed8' },
   { icon: '🌍', label: 'Geo-Block & Travel', color: '#0891b2' },
 ];
 
@@ -45,7 +45,7 @@ export default function HelpSupport() {
         .hs-page { min-height:100vh;background:#f1f5f9;font-family:'Segoe UI',sans-serif; }
 
         .hs-topbar {
-          background:#fff;border-bottom:1px solid #e2e8f0;padding:18px 32px;
+          background:rgba(255,255,255,.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid #e2e8f0;padding:18px 32px;
           display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;
         }
         .hs-back {
@@ -60,7 +60,7 @@ export default function HelpSupport() {
         .hs-body { max-width:860px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:24px; }
 
         .hs-hero {
-          background:linear-gradient(135deg,#1d4ed8 0%,#4f46e5 50%,#7c3aed 100%);
+          background:linear-gradient(135deg,#1d4ed8 0%,#0b72e7 55%,#0284c7 100%);
           border-radius:20px;padding:32px;color:#fff;text-align:center;
           box-shadow:0 10px 40px rgba(37,99,235,.3);
         }
@@ -120,7 +120,7 @@ export default function HelpSupport() {
         .hs-textarea { resize:vertical;min-height:100px; }
         .hs-send-btn {
           width:100%;padding:13px;border-radius:12px;border:none;
-          background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;
+          background:linear-gradient(135deg,#1d4ed8,#0b72e7);color:#fff;
           font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;
           box-shadow:0 4px 14px rgba(29,78,216,.3);
         }

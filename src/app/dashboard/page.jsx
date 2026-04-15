@@ -19,7 +19,7 @@ const NAV_ITEMS = [
 // ─── Quick-action buttons ─────────────────────────────────────────────────────
 const QUICK_ACTIONS = [
   { icon: '💸', label: 'Send Money',      href: '/payment',       color: '#2563eb' },
-  { icon: '📷', label: 'Scan & Pay',      href: '/qr',            color: '#7c3aed' },
+  { icon: '📷', label: 'Scan & Pay',      href: '/qr',            color: '#1d4ed8' },
   { icon: '📋', label: 'History',         href: '/transactions',  color: '#0891b2' },
   { icon: '🔔', label: 'Notifications',   href: '/notifications', color: '#059669' },
 ];
@@ -29,7 +29,7 @@ const STATS = [
   { icon: '✅', label: 'Transactions',  value: '1,248',  sub: 'This month',         color: '#10b981' },
   { icon: '🛡️', label: 'Threats Blocked', value: '3',   sub: 'Last 30 days',       color: '#2563eb' },
   { icon: '⚡', label: 'Avg Speed',     value: '1.2s',   sub: 'Per transaction',    color: '#f59e0b' },
-  { icon: '🔒', label: 'Security Score', value: '98%',  sub: 'Excellent',           color: '#7c3aed' },
+  { icon: '🔒', label: 'Security Score', value: '98%',  sub: 'Excellent',           color: '#1d4ed8' },
 ];
 
 // ─── Recent transactions ──────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ export default function Dashboard() {
         }
         .ps-avatar {
           width: 44px; height: 44px; border-radius: 50%;
-          background: linear-gradient(135deg, #2563eb, #7c3aed);
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
           display: flex; align-items: center; justify-content: center;
           font-size: 18px; color: #fff; font-weight: 700; flex-shrink: 0;
         }
@@ -211,7 +211,7 @@ export default function Dashboard() {
 
         /* Balance card */
         .ps-balance-card {
-          background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 50%, #7c3aed 100%);
+          background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 50%, #1d4ed8 100%);
           border-radius: 20px; padding: 28px 32px; color: #fff; position: relative; overflow: hidden;
           display: flex; justify-content: space-between; align-items: center;
           box-shadow: 0 10px 40px rgba(37,99,235,0.35);
