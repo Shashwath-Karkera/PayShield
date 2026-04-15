@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 @import "tailwindcss";
-=======
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
->>>>>>> 618203f (Added authentication with email and sms)
 
 /* ===== CSS Variables ===== */
 :root {

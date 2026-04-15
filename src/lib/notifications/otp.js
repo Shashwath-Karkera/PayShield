@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { sendVerificationSMS } from '@/lib/services/smsService';
 
 function getSmtpConfig() {
   const provider = (process.env.EMAIL_OTP_PROVIDER || 'smtp').toLowerCase();
@@ -73,7 +74,44 @@ export async function sendEmailOtp({ toEmail, otpCode }) {
   });
 }
 
-export async function sendSmsOtp({ toEmail, otpCode }) {
+export async function sendSmsOtp({ toPhone, toEmail, otpCode }) {
+  if (toPhone) {
+    const smsResult = await sendVerificationSMS(toPhone, otpCode);
+
+    if (smsResult.success) {
+      return {
+        sent: true,
+        provider: 'twilio',
+        testMode: Boolean(smsResult.testMode),
+        otp: smsResult.otp,
+        error: smsResult.error
+      };
+    }
+
+    if (toEmail) {
+      const fallback = await sendOtpMail({
+        toEmail,
+        subject: 'PayShield SMS OTP Fallback',
+        html: `<p>SMS delivery failed, so this SMS OTP is delivered via email: <strong>${otpCode}</strong>.</p><p>It expires in 10 minutes.</p>`
+      });
+
+      return {
+        sent: Boolean(fallback.sent),
+        provider: fallback.sent ? 'smtp-fallback' : 'twilio+smtp-fallback',
+        fallback: true,
+        error: fallback.sent ? smsResult.error : `${smsResult.error || 'SMS failed'} | ${fallback.error || 'Fallback email failed'}`
+      };
+    }
+
+    return {
+      sent: false,
+      provider: 'twilio',
+      testMode: Boolean(smsResult.testMode),
+      otp: smsResult.otp,
+      error: smsResult.error
+    };
+  }
+
   return sendOtpMail({
     toEmail,
     subject: 'PayShield SMS OTP (Email Delivery)',
