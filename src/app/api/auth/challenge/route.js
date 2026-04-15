@@ -1,110 +1,71 @@
 import { NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
-import { generateToken, generateRefreshToken } from '@/lib/auth/utils';
+import crypto from 'crypto';
+import { db } from '@/lib/db';
+import { loginChallenges } from '@/lib/db/schema';
 
-const sql = neon(process.env.DATABASE_URL);
+// Rate Limiting (In-memory strict requirement: 5 per minute)
+// Test Rate Limiting: Hit endpoint 6 times in 1 min -> expects 429
+const rateLimits = new Map();
 
-export async function POST(request) {
+function checkRateLimit(userId) {
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  
+  if (!rateLimits.has(userId)) {
+    rateLimits.set(userId, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  
+  const record = rateLimits.get(userId);
+  if (now > record.resetAt) {
+    rateLimits.set(userId, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  
+  if (record.count >= 5) {
+    return false;
+  }
+  
+  record.count += 1;
+  return true;
+}
+
+export async function POST(req) {
   try {
-    const payload = await request.json();
-    const { 
-      challengeId, 
-      deviceDna,
-      ipAddress,
-      locationCountry,
-      browserSignature,
-      screenResolution
-    } = payload;
-    
-    console.log('Challenge verification request:', { challengeId, deviceDna });
-    
-    // If no challengeId, try to find the user by deviceDna or create a new session
-    let user = null;
-    
-    if (challengeId) {
-      // Try to find challenge
-      const challenges = await sql`
-        SELECT * FROM login_challenges 
-        WHERE id = ${challengeId} AND consumed_at IS NULL
-      `;
-      
-      if (challenges.length > 0) {
-        const challenge = challenges[0];
-        const users = await sql`SELECT * FROM users WHERE id = ${challenge.user_id}`;
-        user = users[0];
-      }
+    const { userId, deviceDna, ipAddress } = await req.json();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
     }
-    
-    // If no user found, try to find by device or return error
-    if (!user) {
-      // For testing, return a mock response that the frontend expects
-      console.log('No challenge found, returning mock response');
-      return NextResponse.json({
-        ok: true,
-        sessionToken: 'mock_session_token_' + Date.now(),
-        sessionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
-        verificationRequired: false,
-        user: {
-          id: 1,
-          name: 'Test User',
-          email: 'test@example.com',
-          balance: 0,
-          isFrozen: false
-        }
-      });
+
+    if (!checkRateLimit(userId)) {
+      return NextResponse.json({ error: "Too many attempts. Please wait." }, { status: 429 });
     }
+
+    // Generate random 32-byte challenge
+    const challengeBytes = crypto.randomBytes(32);
+    const challengeBase64 = challengeBytes.toString('base64');
     
-    // Generate tokens
-    const sessionToken = generateToken(user.id, user.email);
-    const refreshToken = generateRefreshToken(user.id);
-    
-    // Create session
-    await sql`
-      INSERT INTO user_sessions (
-        user_id, session_token, device_info, ip_address, user_agent, 
-        is_active, expires_at, created_at
-      ) VALUES (
-        ${user.id}, ${sessionToken}, ${JSON.stringify({ browserSignature, screenResolution, deviceDna })},
-        ${ipAddress || 'unknown'}, ${browserSignature || ''}, true, 
-        NOW() + INTERVAL '12 hours', NOW()
-      )
-    `;
-    
-    // Update user last login
-    await sql`
-      UPDATE users 
-      SET last_login = NOW(), last_known_ip = ${ipAddress || 'unknown'}
-      WHERE id = ${user.id}
-    `;
-    
+    // Test Challenge Expiry: Try to use a challenge > 5 mins old -> expects 410
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    const [inserted] = await db.insert(loginChallenges).values({
+      userId,
+      challenge: challengeBase64,
+      ipAddress: ipAddress || req.headers.get('x-forwarded-for') || '127.0.0.1',
+      expiresAt
+    }).returning({ id: loginChallenges.id });
+
+    // Note: Logging attempt can be done here to security_events table
+
     return NextResponse.json({
-      ok: true,
-      sessionToken,
-      sessionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
-      verificationRequired: false,
-      user: {
-        id: user.id,
-        name: user.full_name,
-        email: user.email,
-        balance: user.balance || 0,
-        isFrozen: false
-      }
-    });
+      challengeId: inserted.id,
+      challenge: challengeBase64,
+      expiresAt: expiresAt.toISOString()
+    }, { status: 200 });
     
   } catch (error) {
-    console.error('Challenge verification error:', error);
-    return NextResponse.json({
-      ok: true,
-      sessionToken: 'mock_token_' + Date.now(),
-      sessionExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
-      verificationRequired: false,
-      user: {
-        id: 1,
-        name: 'Test User',
-        email: 'test@example.com',
-        balance: 0,
-        isFrozen: false
-      }
-    });
+    console.error("Challenge error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
