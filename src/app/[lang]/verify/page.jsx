@@ -262,7 +262,7 @@ export default function VerifyPage() {
       <div className="auth-box register-box">
         <div className="auth-header">
           <h1>Complete Secure Verification</h1>
-          <p>Verify OTP, device, SIM slot, and PayShield PIN before accessing payments.</p>
+          <p>Both Email OTP and SMS OTP are mandatory, along with device, SIM slot, and PayShield PIN checks.</p>
         </div>
 
         {context ? (

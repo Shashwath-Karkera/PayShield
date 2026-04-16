@@ -7,9 +7,7 @@ import AppIcon from '@/components/AppIcon';
 import BehaviorCollector from '@/lib/behavior/collector';
 import {
   collectDeviceFingerprint,
-  getClientNetworkInfo,
-  getOrCreateDeviceKeyPair,
-  signChallenge
+  getClientNetworkInfo
 } from '@/lib/security/clientDevice';
 
 export default function Login() {
@@ -57,7 +55,6 @@ export default function Login() {
       const device = collectDeviceFingerprint();
       const network = getClientNetworkInfo();
       const behaviorData = behaviorCollector.current?.getData() || {};
-      const keyPair = await getOrCreateDeviceKeyPair();
 
       const loginResponse = await fetch('/api/auth/login', {
         method: 'POST',
@@ -81,87 +78,31 @@ export default function Login() {
         throw new Error(loginPayload.error || 'Login failed.');
       }
 
-      // Legacy/direct login flow: backend returns ready-to-use tokens.
-      if (loginPayload.token) {
-        localStorage.setItem('ps_session_token', loginPayload.token);
-        localStorage.setItem('token', loginPayload.token);
-
-        if (loginPayload.refreshToken) {
-          localStorage.setItem('refreshToken', loginPayload.refreshToken);
-        }
-
-        if (loginPayload.user?.id) {
-          localStorage.setItem('ps_user_id', String(loginPayload.user.id));
-        }
-
-        if (loginPayload.user?.email) {
-          localStorage.setItem('ps_user_email', loginPayload.user.email);
-        }
-
-        if (loginPayload.user?.name) {
-          localStorage.setItem('ps_user_name', loginPayload.user.name);
-        }
-
-        if (loginPayload.user?.phone) {
-          localStorage.setItem('ps_user_phone', loginPayload.user.phone);
-        }
-
-        setMessageType('success');
-        setMessage('Login successful. Redirecting...');
-
-        setTimeout(() => {
-          router.push(`/${currentLang}/dashboard`);
-        }, 500);
-
-        return;
+      if (!loginPayload.sessionToken || !loginPayload.verification?.id) {
+        throw new Error('Verification session could not be created.');
       }
 
-      if (!loginPayload.challenge || !loginPayload.challengeId) {
-        throw new Error('Login challenge data missing from server response.');
+      localStorage.setItem('ps_session_token', loginPayload.sessionToken);
+      localStorage.setItem('token', loginPayload.sessionToken);
+      localStorage.setItem('ps_user_id', String(loginPayload.user?.id || ''));
+      localStorage.setItem('ps_user_email', loginPayload.user?.email || '');
+      localStorage.setItem('ps_user_name', loginPayload.user?.name || '');
+      localStorage.setItem('ps_user_phone', loginPayload.user?.phone || '');
+      localStorage.setItem('ps_verification_id', loginPayload.verification.id || '');
+
+      if (loginPayload.verification?.devEmailOtp) {
+        localStorage.setItem('ps_dev_email_otp', loginPayload.verification.devEmailOtp);
       }
 
-      const signature = await signChallenge(keyPair.privateKey, loginPayload.challenge);
-
-      const challengeResponse = await fetch('/api/auth/challenge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          challengeId: loginPayload.challengeId,
-          signature,
-          ipAddress: network.ipAddress,
-          locationCountry: network.locationCountry,
-          locationCity: network.locationCity,
-          browserSignature: device.browserSignature,
-          screenResolution: device.screenResolution,
-          deviceDna: device.deviceDna,
-          devicePublicKeyPem: keyPair.publicPem,
-          trustedDeviceName: 'Browser Device'
-        })
-      });
-
-      const authPayload = await challengeResponse.json();
-      if (!challengeResponse.ok) {
-        throw new Error(authPayload.error || 'Device challenge verification failed.');
-      }
-
-      localStorage.setItem('ps_session_token', authPayload.sessionToken);
-      localStorage.setItem('ps_user_id', authPayload.user.id);
-      localStorage.setItem('ps_user_email', authPayload.user.email);
-      localStorage.setItem('ps_user_name', authPayload.user.name);
-      localStorage.setItem('ps_verification_id', authPayload.verification?.id || '');
-      if (authPayload.verification?.devEmailOtp) {
-        localStorage.setItem('ps_dev_email_otp', authPayload.verification.devEmailOtp);
-      }
-
-      if (authPayload.verification?.devSmsOtp) {
-        localStorage.setItem('ps_dev_sms_otp', authPayload.verification.devSmsOtp);
+      if (loginPayload.verification?.devSmsOtp) {
+        localStorage.setItem('ps_dev_sms_otp', loginPayload.verification.devSmsOtp);
       }
 
       setMessageType('success');
       setMessage('Primary login complete. Redirecting to multi-factor verification...');
 
       setTimeout(() => {
-        router.push(`/${currentLang}/verify?verificationId=${authPayload.verification?.id || ''}`);
+        router.push(`/${currentLang}/verify?verificationId=${loginPayload.verification?.id || ''}`);
       }, 600);
     } catch (error) {
       setMessageType('error');

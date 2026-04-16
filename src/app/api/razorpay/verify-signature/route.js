@@ -2,18 +2,23 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireSession } from '@/lib/auth/session';
+import { verifyPayShieldPin } from '@/lib/security/verification';
 
 const schema = z.object({
   userId: z.string().min(1),
+  payShieldPin: z.string().min(4).max(12),
   razorpayOrderId: z.string().min(1),
   razorpayPaymentId: z.string().min(1),
   razorpaySignature: z.string().min(10)
 });
 
 function getSecret() {
-  const secret = process.env.RAZORPAY_KEY_SECRET;
+  const secret =
+    process.env.PAYSHIELD_RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
   if (!secret) {
-    throw new Error('RAZORPAY_KEY_SECRET is required.');
+    throw new Error(
+      'PAYSHIELD_RAZORPAY_KEY_SECRET (or legacy RAZORPAY_KEY_SECRET) is required.'
+    );
   }
 
   return secret;
@@ -26,6 +31,27 @@ export async function POST(request) {
     const auth = await requireSession(request, data.userId);
     if (!auth.ok) {
       return auth.response;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: data.userId },
+      select: { payShieldPinHash: true }
+    });
+
+    if (!user) {
+      return Response.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    if (!user.payShieldPinHash) {
+      return Response.json(
+        { error: 'PayShield PIN is not configured. Complete verification setup first.' },
+        { status: 403 }
+      );
+    }
+
+    const pinOk = await verifyPayShieldPin(data.payShieldPin, user.payShieldPinHash);
+    if (!pinOk) {
+      return Response.json({ error: 'Invalid PayShield PIN.' }, { status: 401 });
     }
 
     const generated = crypto

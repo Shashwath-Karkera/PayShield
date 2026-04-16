@@ -6,7 +6,16 @@ import { usePathname } from "next/navigation";
 export default function ClientLayoutWrapper({ children, navbar, footer }) {
   const pathname = usePathname();
   const isAuthRoute = pathname && (pathname.includes("/login") || pathname.includes("/register") || pathname.includes("/verify"));
-  const isAppRoute = pathname && (pathname.includes("/dashboard") || pathname.includes("/payment") || pathname.includes("/bank-credentials") || pathname.includes("/threat"));
+  const isAppRoute = pathname && (
+    pathname.includes('/dashboard') ||
+    pathname.includes('/payment') ||
+    pathname.includes('/transactions') ||
+    pathname.includes('/profile') ||
+    pathname.includes('/settings') ||
+    pathname.includes('/bank-credentials') ||
+    pathname.includes('/security') ||
+    pathname.includes('/threat')
+  );
 
   const layoutState = isAuthRoute ? "auth" : isAppRoute ? "app" : "default";
 

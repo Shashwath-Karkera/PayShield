@@ -3,51 +3,57 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authFetch } from '@/lib/http/authFetch';
+import {
+  FaBolt,
+  FaChartLine,
+  FaGear,
+  FaMoneyBillTransfer,
+  FaQrcode,
+  FaShieldHalved,
+  FaUser,
+  FaBell,
+  FaList,
+  FaRobot,
+  FaGlobe,
+  FaDatabase,
+  FaFingerprint,
+  FaTriangleExclamation,
+  FaTableCellsLarge,
+  FaRightFromBracket,
+  FaCircleCheck,
+  FaLock
+} from 'react-icons/fa6';
 
 // ─── Sidebar nav items ───────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { icon: '⊞', label: 'Dashboard',        href: '/dashboard',     active: true  },
-  { icon: '💸', label: 'Pay',              href: '/payment',       active: false },
-  { icon: '📋', label: 'Transactions',     href: '/transactions',  active: false },
-  { icon: '🔔', label: 'Notifications',    href: '/notifications', active: false },
-  { icon: '📷', label: 'QR Payment',       href: '/qr',            active: false },
-  { icon: '👤', label: 'Profile',          href: '/profile',       active: false },
-  { icon: '🛡️', label: 'Security',         href: '/security',      active: false },
-  { icon: '🚨', label: 'Threat Admin',       href: '/admin/threats', active: false },
-  { icon: '⚙️', label: 'Settings',         href: '/settings',      active: false },
+  { icon: FaTableCellsLarge, label: 'Dashboard', href: '/dashboard', active: true },
+  { icon: FaMoneyBillTransfer, label: 'Pay', href: '/payment', active: false },
+  { icon: FaList, label: 'Transactions', href: '/transactions', active: false },
+  { icon: FaBell, label: 'Notifications', href: '/notifications', active: false },
+  { icon: FaQrcode, label: 'QR Payment', href: '/qr', active: false },
+  { icon: FaUser, label: 'Profile', href: '/profile', active: false },
+  { icon: FaShieldHalved, label: 'Security', href: '/security', active: false },
+  { icon: FaTriangleExclamation, label: 'Threat Admin', href: '/admin/threats', active: false },
+  { icon: FaGear, label: 'Settings', href: '/settings', active: false }
 ];
+
+const THREAT_ADMIN_HREF = '/admin/threats';
 
 // ─── Quick-action buttons ─────────────────────────────────────────────────────
 const QUICK_ACTIONS = [
-  { icon: '💸', label: 'Send Money',      href: '/payment',       color: '#2563eb' },
-  { icon: '📷', label: 'Scan & Pay',      href: '/qr',            color: '#1d4ed8' },
-  { icon: '📋', label: 'History',         href: '/transactions',  color: '#0891b2' },
-  { icon: '🔔', label: 'Notifications',   href: '/notifications', color: '#059669' },
-];
-
-// ─── Stats ────────────────────────────────────────────────────────────────────
-const STATS = [
-  { icon: '✅', label: 'Transactions',  value: '1,248',  sub: 'This month',         color: '#10b981' },
-  { icon: '🛡️', label: 'Threats Blocked', value: '3',   sub: 'Last 30 days',       color: '#2563eb' },
-  { icon: '⚡', label: 'Avg Speed',     value: '1.2s',   sub: 'Per transaction',    color: '#f59e0b' },
-  { icon: '🔒', label: 'Security Score', value: '98%',  sub: 'Excellent',           color: '#1d4ed8' },
-];
-
-// ─── Recent transactions ──────────────────────────────────────────────────────
-const TRANSACTIONS = [
-  { icon: '🛒', name: 'Amazon India',      desc: 'Online Shopping',   date: 'Today, 11:42 AM',   location: 'Bengaluru',  amount: '-₹1,299', type: 'debit',  status: 'Verified' },
-  { icon: '👤', name: 'Rahul Sharma',       desc: 'UPI Transfer',      date: 'Today, 09:15 AM',   location: 'Mumbai',     amount: '+₹5,000', type: 'credit', status: 'Verified' },
-  { icon: '🍕', name: 'Swiggy',            desc: 'Food Order',         date: 'Yesterday, 8:30 PM', location: 'Bengaluru', amount: '-₹348',   type: 'debit',  status: 'Verified' },
-  { icon: '⛽', name: 'HP Petrol Bunk',    desc: 'Fuel Payment',       date: 'Mar 18, 6:10 PM',   location: 'Mangaluru',  amount: '-₹2,100', type: 'debit',  status: 'Verified' },
-  { icon: '👤', name: 'Priya Nair',        desc: 'UPI Transfer',       date: 'Mar 17, 2:00 PM',   location: 'Kochi',      amount: '+₹3,500', type: 'credit', status: 'Verified' },
+  { icon: FaMoneyBillTransfer, label: 'Send Money', href: '/payment', color: '#2563eb' },
+  { icon: FaQrcode, label: 'Scan & Pay', href: '/qr', color: '#1d4ed8' },
+  { icon: FaChartLine, label: 'History', href: '/transactions', color: '#0891b2' },
+  { icon: FaBell, label: 'Notifications', href: '/notifications', color: '#059669' }
 ];
 
 // ─── Security status cards ────────────────────────────────────────────────────
 const PROTECTIONS = [
-  { icon: '🧬', label: 'Device DNA',       status: 'Active',  desc: 'This device is registered & verified.' },
-  { icon: '🌍', label: 'Geo-Auth',         status: 'Active',  desc: 'Location monitoring is on.' },
-  { icon: '🍯', label: 'Honeypot',         status: 'Active',  desc: 'Mirror Maze decoy is armed.' },
-  { icon: '🤖', label: 'AI Monitoring',    status: 'Active',  desc: 'Behavioural anomaly detection running.' },
+  { icon: FaFingerprint, label: 'Device DNA', status: 'Active', desc: 'This device is registered & verified.' },
+  { icon: FaGlobe, label: 'Geo-Auth', status: 'Active', desc: 'Location monitoring is on.' },
+  { icon: FaDatabase, label: 'Honeypot', status: 'Active', desc: 'Mirror Maze decoy is armed.' },
+  { icon: FaRobot, label: 'AI Monitoring', status: 'Active', desc: 'Behavioural anomaly detection running.' }
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -56,18 +62,20 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isSystemAdmin, setIsSystemAdmin] = useState(false);
+  const [overview, setOverview] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('ps_session_token') || localStorage.getItem('token');
     if (!token) {
       router.push('/en/login');
       return;
     }
     
     // Try to get user info from multiple possible localStorage keys
-    let userEmail = localStorage.getItem('userEmail');
-    let userName = localStorage.getItem('userName');
+    let userEmail = localStorage.getItem('ps_user_email') || localStorage.getItem('userEmail');
+    let userName = localStorage.getItem('ps_user_name') || localStorage.getItem('userName');
     
     // If they aren't stored individually, check if there's a user object stored
     const storedUserStr = localStorage.getItem('user');
@@ -92,10 +100,80 @@ export default function Dashboard() {
       email: userEmail || 'user@example.com',
       avatar: finalName.charAt(0).toUpperCase()
     });
-    setLoading(false);
+
+    const checkAdminAccess = async () => {
+      try {
+        const res = await authFetch('/api/admin/access');
+        const data = await res.json();
+        if (res.ok && data?.isSystemAdmin) {
+          setIsSystemAdmin(true);
+          return;
+        }
+      } catch (error) {
+        // Keep silent here and fall back to non-admin view.
+      }
+
+      setIsSystemAdmin(false);
+    };
+
+    const fetchOverview = async () => {
+      try {
+        const res = await authFetch('/api/dashboard/overview');
+        const data = await res.json();
+        if (res.ok) {
+          setOverview(data);
+        }
+      } catch {
+        // Keep dashboard functional even if overview fetch fails.
+      }
+    };
+
+    Promise.all([checkAdminAccess(), fetchOverview()]).finally(() => {
+      setLoading(false);
+    });
   }, [router]);
 
+  const stats = [
+    {
+      icon: FaCircleCheck,
+      label: 'Transactions',
+      value: String(overview?.stats?.transactionsThisMonth ?? 0),
+      sub: 'This month',
+      color: '#10b981'
+    },
+    {
+      icon: FaShieldHalved,
+      label: 'Threats Blocked',
+      value: String(overview?.stats?.threatsBlockedLast30Days ?? 0),
+      sub: 'Last 30 days',
+      color: '#2563eb'
+    },
+    {
+      icon: FaBolt,
+      label: 'Risk Alerts',
+      value: String(Math.max(0, Number(overview?.stats?.threatsBlockedLast30Days ?? 0))),
+      sub: 'Security events',
+      color: '#f59e0b'
+    },
+    {
+      icon: FaLock,
+      label: 'Security Score',
+      value: `${Number(overview?.stats?.securityScore ?? 0)}%`,
+      sub: 'Based on genuinity',
+      color: '#1d4ed8'
+    }
+  ];
+
+  const recentTransactions = Array.isArray(overview?.recentTransactions)
+    ? overview.recentTransactions
+    : [];
+
   const handleLogout = () => {
+    localStorage.removeItem('ps_session_token');
+    localStorage.removeItem('ps_verification_id');
+    localStorage.removeItem('ps_user_id');
+    localStorage.removeItem('ps_user_email');
+    localStorage.removeItem('ps_user_name');
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userEmail');
@@ -103,11 +181,15 @@ export default function Dashboard() {
     window.location.href = '/en/login';
   };
 
+  const visibleNavItems = isSystemAdmin
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter((item) => item.href !== THREAT_ADMIN_HREF);
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f1f5f9' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🛡️</div>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}><FaShieldHalved /></div>
           <div style={{ fontSize: '18px', color: '#64748b' }}>Loading dashboard...</div>
         </div>
       </div>
@@ -376,7 +458,7 @@ export default function Dashboard() {
         <aside className={`ps-sidebar ${sidebarOpen ? 'open' : ''}`}>
           {/* Logo */}
           <div className="ps-sidebar-logo">
-            <span>🛡️</span>
+            <span><FaShieldHalved /></span>
             <strong>PayShield</strong>
           </div>
 
@@ -391,14 +473,14 @@ export default function Dashboard() {
 
           {/* Nav */}
           <nav className="ps-nav">
-            {NAV_ITEMS.map((item) => (
+            {visibleNavItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
                 className={`ps-nav-item ${item.active ? 'active' : ''}`}
                 onClick={() => setSidebarOpen(false)}
               >
-                <span className="ni">{item.icon}</span>
+                <span className="ni"><item.icon /></span>
                 {item.label}
               </Link>
             ))}
@@ -407,7 +489,7 @@ export default function Dashboard() {
           {/* Logout */}
           <div className="ps-sidebar-bottom">
             <button className="ps-logout-btn" onClick={handleLogout}>
-              <span>🚪</span> Log Out
+              <span><FaRightFromBracket /></span> Log Out
             </button>
           </div>
         </aside>
@@ -417,7 +499,7 @@ export default function Dashboard() {
           {/* Top bar */}
           <header className="ps-topbar">
             <div className="ps-topbar-left">
-              <h1>Good morning, {user?.name || 'User'} 👋</h1>
+              <h1>Good morning, {user?.name || 'User'}</h1>
               <p>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} &nbsp;·&nbsp; All systems secure</p>
             </div>
             <div className="ps-topbar-right">
@@ -426,8 +508,8 @@ export default function Dashboard() {
                 onClick={() => setSidebarOpen(!sidebarOpen)}
               >☰</button>
               <Link href="/notifications" className="ps-icon-btn" title="Notifications">
-                🔔
-                <span className="ps-notif-dot" />
+                <FaBell />
+                {Number(overview?.stats?.unreadNotifications ?? 0) > 0 ? <span className="ps-notif-dot" /> : null}
               </Link>
               <div className="ps-status-pill">
                 <span className="ps-status-dot" />
@@ -443,24 +525,24 @@ export default function Dashboard() {
             <div className="ps-balance-card">
               <div className="ps-balance-left">
                 <p className="ps-balance-label">AVAILABLE BALANCE</p>
-                <p className="ps-balance-amount">₹48,250.00</p>
-                <p className="ps-balance-sub">Last updated: Today, 11:42 AM</p>
+                <p className="ps-balance-amount">₹{Number(overview?.user?.balance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="ps-balance-sub">Last updated: {overview?.user?.lastUpdatedAt ? new Date(overview.user.lastUpdatedAt).toLocaleString() : '-'}</p>
               </div>
               <div className="ps-balance-right">
-                <div className="ps-balance-tag">🔒 PayShield Protected</div>
+                <div className="ps-balance-tag"><FaLock />&nbsp;PayShield Protected</div>
                 <p className="ps-balance-acno">A/C: •••• •••• 4821</p>
               </div>
             </div>
 
             {/* Stats */}
             <div className="ps-stats-row">
-              {STATS.map((s) => (
+              {stats.map((s) => (
                 <div className="ps-stat-card" key={s.label}>
                   <div
                     className="ps-stat-icon-wrap"
                     style={{ background: s.color + '18' }}
                   >
-                    {s.icon}
+                    <s.icon />
                   </div>
                   <div>
                     <p className="ps-stat-label">{s.label}</p>
@@ -481,7 +563,7 @@ export default function Dashboard() {
                       className="ps-qa-icon"
                       style={{ background: a.color + '18' }}
                     >
-                      {a.icon}
+                      <a.icon />
                     </div>
                     <span className="ps-qa-label">{a.label}</span>
                   </Link>
@@ -498,16 +580,23 @@ export default function Dashboard() {
                   <h3>Recent Transactions</h3>
                   <Link href="/transactions" className="ps-view-all">View all →</Link>
                 </div>
-                {TRANSACTIONS.map((t, i) => (
-                  <div className="ps-txn-row" key={i}>
-                    <div className={`ps-txn-icon ${t.type}`}>{t.icon}</div>
+                {recentTransactions.length === 0 ? (
+                  <div className="ps-txn-row">
                     <div className="ps-txn-info">
-                      <p className="ps-txn-name">{t.name}</p>
-                      <p className="ps-txn-meta">{t.desc} &nbsp;·&nbsp; {t.date}</p>
+                      <p className="ps-txn-name">No transactions found</p>
+                      <p className="ps-txn-meta">Your latest transactions will appear here.</p>
+                    </div>
+                  </div>
+                ) : recentTransactions.map((t) => (
+                  <div className="ps-txn-row" key={t.id}>
+                    <div className="ps-txn-icon debit"><FaMoneyBillTransfer /></div>
+                    <div className="ps-txn-info">
+                      <p className="ps-txn-name">{t.payee}</p>
+                      <p className="ps-txn-meta">{t.locationCity || 'Unknown city'} &nbsp;·&nbsp; {new Date(t.createdAt).toLocaleString()}</p>
                     </div>
                     <div className="ps-txn-right">
-                      <p className={`ps-txn-amount ${t.type}`}>{t.amount}</p>
-                      <p className="ps-txn-status">✔ {t.status}</p>
+                      <p className="ps-txn-amount debit">-₹{Number(t.amount || 0).toLocaleString('en-IN')}</p>
+                      <p className="ps-txn-status">✔ {String(t.status || 'SUCCESS')}</p>
                     </div>
                   </div>
                 ))}
@@ -524,11 +613,11 @@ export default function Dashboard() {
                   </div>
                   <div className="ps-score-wrap">
                     <div className="ps-score-circle">
-                      <div className="ps-score-inner">98%</div>
+                      <div className="ps-score-inner">{Number(overview?.stats?.securityScore ?? 0)}%</div>
                     </div>
                     <div>
-                      <p className="ps-score-label">Excellent Protection</p>
-                      <p className="ps-score-sub">All security layers are active and verified.</p>
+                      <p className="ps-score-label">Live Protection Score</p>
+                      <p className="ps-score-sub">Derived from your latest security and behavior signals.</p>
                     </div>
                   </div>
                 </div>
@@ -541,7 +630,7 @@ export default function Dashboard() {
                   <div className="ps-security-list">
                     {PROTECTIONS.map((p) => (
                       <div className="ps-prot-row" key={p.label}>
-                        <div className="ps-prot-icon">{p.icon}</div>
+                        <div className="ps-prot-icon"><p.icon /></div>
                         <div className="ps-prot-info">
                           <p className="ps-prot-name">{p.label}</p>
                           <p className="ps-prot-desc">{p.desc}</p>

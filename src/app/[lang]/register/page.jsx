@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AppIcon from '@/components/AppIcon';
+import BehaviorCollector from '@/lib/behavior/collector';
 import {
   collectDeviceFingerprint,
   getClientNetworkInfo,
@@ -30,6 +31,12 @@ export default function Register() {
   });
   const registerDict = dict.auth?.register || {};
   const commonDict = dict.common || {};
+  const behaviorCollector = useState(() => new BehaviorCollector())[0];
+
+  useEffect(() => {
+    behaviorCollector.startTracking();
+    return () => behaviorCollector.stopTracking();
+  }, [behaviorCollector]);
 
   useEffect(() => {
     import(`@/i18n/dictionaries/${currentLang}.json`)
@@ -59,6 +66,7 @@ export default function Register() {
       const device = collectDeviceFingerprint();
       const network = getClientNetworkInfo();
       const keyPair = await getOrCreateDeviceKeyPair();
+      const behaviorData = behaviorCollector.getData();
 
       const response = await fetch('/api/users/register', {
         method: 'POST',
@@ -77,7 +85,8 @@ export default function Register() {
           locationCountry: network.locationCountry,
           locationCity: network.locationCity,
           ipAddress: network.ipAddress,
-          openingBalance: 5000
+          openingBalance: 5000,
+          behaviorData
         })
       });
 
@@ -104,7 +113,7 @@ export default function Register() {
       }
 
       setMessageType('success');
-      setMessage('Registration successful. Redirecting to verification...');
+      setMessage('Registration successful. Enter both Email OTP and SMS OTP on the next screen.');
 
       setTimeout(() => {
         router.push(`/${currentLang}/verify?verificationId=${payload.verification?.id || ''}`);

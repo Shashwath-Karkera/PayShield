@@ -55,8 +55,14 @@ Required values:
 - DIRECT_URL
 - APP_ENCRYPTION_KEY
 - SPICE_PEPPER_KEY
-- RAZORPAY_KEY_ID
-- RAZORPAY_KEY_SECRET
+- PAYSHIELD_JWT_ACCESS_SECRET
+- PAYSHIELD_JWT_REFRESH_SECRET
+- PAYSHIELD_RAZORPAY_KEY_ID
+- PAYSHIELD_RAZORPAY_KEY_SECRET
+- PAYSHIELD_ADMIN_EMAIL
+- PAYSHIELD_ADMIN_USERNAME
+- PAYSHIELD_ADMIN_PASSWORD
+- PAYSHIELD_ADMIN_JWT_SECRET
 
 Optional OTP provider values:
 
@@ -89,6 +95,12 @@ If you are setting up from scratch and want to reset local migration state:
 
 ```bash
 npx prisma migrate reset
+```
+
+For a fully clean regenerate + reset flow:
+
+```bash
+npm run db:fresh
 ```
 
 ## 5. Run the App
