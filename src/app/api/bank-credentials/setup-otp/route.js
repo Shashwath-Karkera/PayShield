@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireSession } from '@/lib/auth/session';
-import { encryptOtp, generateOtpCode } from '@/lib/security/verification';
+import { generateOtpCode } from '@/lib/security/verification';
+import { storeBankSetupOtps } from '@/lib/security/bankSetupOtpStore';
 import { sendVerificationEmail } from '@/lib/services/emailService';
 import { sendVerificationSMS } from '@/lib/services/smsService';
 
@@ -51,43 +52,27 @@ export async function POST(request) {
     const smsOtp = generateOtpCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    await prisma.$transaction([
-      prisma.otpCode.deleteMany({
-        where: {
-          userId: user.id,
-          type: 'bank_setup_email'
-        }
-      }),
-      prisma.otpCode.deleteMany({
-        where: {
-          userId: user.id,
-          type: 'bank_setup_phone'
-        }
-      }),
-      prisma.otpCode.create({
-        data: {
-          userId: user.id,
-          identifier: user.email,
-          type: 'bank_setup_email',
-          otpEnc: encryptOtp(emailOtp),
-          expiresAt
-        }
-      }),
-      prisma.otpCode.create({
-        data: {
-          userId: user.id,
-          identifier: user.phone,
-          type: 'bank_setup_phone',
-          otpEnc: encryptOtp(smsOtp),
-          expiresAt
-        }
-      })
-    ]);
+    await storeBankSetupOtps({
+      userId: user.id,
+      email: user.email,
+      phone: user.phone,
+      emailOtpEnc: emailOtp,
+      smsOtpEnc: smsOtp,
+      expiresAt
+    });
 
-    await Promise.all([
+    const [emailResult, smsResult] = await Promise.all([
       sendVerificationEmail(user.email, emailOtp, user.name),
       sendVerificationSMS(user.phone, smsOtp)
     ]);
+
+    if (!emailResult?.success) {
+      throw new Error(emailResult?.error || 'Failed to send bank setup email OTP.');
+    }
+
+    if (!smsResult?.success) {
+      throw new Error(smsResult?.error || 'Failed to send bank setup SMS OTP.');
+    }
 
     return Response.json(
       {

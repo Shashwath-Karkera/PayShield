@@ -42,15 +42,17 @@ export default class BehaviorCollector {
   }
 
   handleKeyDown(e) {
-    if (e.key === 'Backspace' || e.key === 'Delete') {
+    const key = typeof e?.key === 'string' ? e.key : '';
+
+    if (key === 'Backspace' || key === 'Delete') {
       this.backspaceCount++;
-    } else if (e.key.length === 1) { // Normal character
+    } else if (key.length === 1) { // Normal character
       this.totalChars++;
       this.keyPresses.push(Date.now());
     }
 
     // Rough check for accessibility tools (repeated rapid strange keys)
-    if (e.key === 'Tab') {
+    if (key === 'Tab') {
       this.hasA11yActive = true;
     }
   }

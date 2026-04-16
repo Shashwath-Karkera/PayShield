@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { encryptOtp, generateOtpCode } from '@/lib/security/verification';
+import { generateOtpCode } from '@/lib/security/verification';
 import { sendVerificationEmail } from '@/lib/services/emailService';
 import { sendVerificationSMS } from '@/lib/services/smsService';
 
@@ -40,14 +40,17 @@ export async function POST(request) {
           userId: user.id,
           identifier,
           type: data.type,
-          otpEnc: encryptOtp(otpCode),
+          otpEnc: otpCode,
           expiresAt
         }
       })
     ]);
 
     if (data.type === 'email') {
-      await sendVerificationEmail(user.email, otpCode, user.name);
+      const emailResult = await sendVerificationEmail(user.email, otpCode, user.name);
+      if (!emailResult?.success) {
+        throw new Error(emailResult?.error || 'Failed to send verification email.');
+      }
     } else {
       await sendVerificationSMS(user.phone || identifier, otpCode);
     }

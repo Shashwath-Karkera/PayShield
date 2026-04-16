@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { calculateRisk } from '@/lib/behavior/riskCalculator';
 import { createSpicePasswordHash } from '@/lib/security/password';
 import { encryptValue } from '@/lib/security/crypto';
-import { encryptOtp, generateOtpCode } from '@/lib/security/verification';
+import { generateOtpCode } from '@/lib/security/verification';
 import { generateSessionToken } from '@/lib/security/device';
 
 const schema = z.object({
@@ -116,8 +116,8 @@ export async function POST(request) {
       data: {
         userId: user.id,
         sessionId: session.id,
-        emailOtpEnc: encryptOtp(emailOtp),
-        smsOtpEnc: encryptOtp(smsOtp),
+        emailOtpEnc: emailOtp,
+        smsOtpEnc: smsOtp,
         ipAddress: data.ipAddress || '0.0.0.0',
         deviceDna: data.deviceDna,
         locationCountry: data.locationCountry,
@@ -146,7 +146,7 @@ export async function POST(request) {
           userId: user.id,
           identifier: user.email,
           type: 'email',
-          otpEnc: encryptOtp(emailOtp),
+          otpEnc: emailOtp,
           expiresAt
         }
       }),
@@ -155,7 +155,7 @@ export async function POST(request) {
           userId: user.id,
           identifier: normalizedPhone,
           type: 'phone',
-          otpEnc: encryptOtp(smsOtp),
+          otpEnc: smsOtp,
           expiresAt
         }
       })
@@ -194,16 +194,19 @@ export async function POST(request) {
       });
     }
 
-    try {
-      const [{ sendVerificationEmail }, { sendVerificationSMS }] = await Promise.all([
-        import('@/lib/services/emailService'),
-        import('@/lib/services/smsService')
-      ]);
+    const [{ sendVerificationEmail }, { sendVerificationSMS }] = await Promise.all([
+      import('@/lib/services/emailService'),
+      import('@/lib/services/smsService')
+    ]);
 
-      await sendVerificationEmail(normalizedEmail, emailOtp, user.name);
-      await sendVerificationSMS(normalizedPhone, smsOtp);
-    } catch {
-      // Keep response successful in development/testing even if providers are unavailable.
+    const emailResult = await sendVerificationEmail(normalizedEmail, emailOtp, user.name);
+    if (!emailResult?.success) {
+      throw new Error(emailResult?.error || 'Failed to send registration email OTP.');
+    }
+
+    const smsResult = await sendVerificationSMS(normalizedPhone, smsOtp);
+    if (!smsResult?.success) {
+      throw new Error(smsResult?.error || 'Failed to send registration SMS OTP.');
     }
 
     return Response.json(

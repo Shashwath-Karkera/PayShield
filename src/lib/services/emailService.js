@@ -1,32 +1,39 @@
 import nodemailer from 'nodemailer';
 
 export const sendVerificationEmail = async (email, otp, name = 'User') => {
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
-  
-  console.log('Email check:', {
-    hasUser: !!emailUser,
-    hasPass: !!emailPass,
-    user: emailUser
-  });
-  
-  if (!emailUser || !emailPass) {
+  const provider = String(process.env.EMAIL_OTP_PROVIDER || 'smtp').toLowerCase();
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = Number(process.env.SMTP_PORT || 587);
+  const smtpSecure = String(process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  const fromEmail = process.env.OTP_FROM_EMAIL || smtpUser;
+
+  if (provider !== 'smtp') {
     console.log(`[TEST MODE] OTP for ${email}: ${otp}`);
     return { success: true, testMode: true, otp };
   }
 
+  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !fromEmail) {
+    return {
+      success: false,
+      error: 'Missing SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS/OTP_FROM_EMAIL while EMAIL_OTP_PROVIDER=smtp'
+    };
+  }
+
   try {
-    // CORRECT: createTransport
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
       auth: {
-        user: emailUser,
-        pass: emailPass,
-      },
+        user: smtpUser,
+        pass: smtpPass
+      }
     });
 
     await transporter.sendMail({
-      from: `"PAYSHIELD Security" <${emailUser}>`,
+      from: `"PAYSHIELD Security" <${fromEmail}>`,
       to: email,
       subject: 'PAYSHIELD - Email Verification Code',
       html: `
@@ -42,9 +49,9 @@ export const sendVerificationEmail = async (email, otp, name = 'User') => {
           <hr>
           <p style="font-size: 12px; color: #666;">PAYSHIELD - Secure Payment Platform</p>
         </div>
-      `,
+      `
     });
-    
+
     console.log(`✅ Email sent to ${email}`);
     return { success: true };
   } catch (error) {

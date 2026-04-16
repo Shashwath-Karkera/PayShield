@@ -3,6 +3,24 @@ import { prisma } from '@/lib/prisma';
 import { encryptValue, decryptValue } from '@/lib/security/crypto';
 import { requireSession } from '@/lib/auth/session';
 import { matchesOtp } from '@/lib/security/verification';
+import { getLatestBankSetupOtp, clearBankSetupOtps } from '@/lib/security/bankSetupOtpStore';
+
+function otpMatches(rawOtp, storedOtp) {
+  const raw = String(rawOtp || '').trim();
+  const stored = String(storedOtp || '').trim();
+
+  if (!raw || !stored) {
+    return false;
+  }
+
+  // New bank setup OTPs are stored as plaintext for easier operational debugging.
+  if (raw === stored) {
+    return true;
+  }
+
+  // Backward compatibility for previously encrypted OTP rows.
+  return matchesOtp(raw, stored);
+}
 
 const createSchema = z.object({
   userId: z.string().min(1),
@@ -54,37 +72,51 @@ export async function POST(request) {
     }
 
     const [emailOtpRecord, smsOtpRecord] = await Promise.all([
-      prisma.otpCode.findFirst({
-        where: {
-          userId: user.id,
-          identifier: user.email,
-          type: 'bank_setup_email',
-          expiresAt: { gt: new Date() }
-        },
-        orderBy: { createdAt: 'desc' }
+      getLatestBankSetupOtp({
+        userId: user.id,
+        identifier: user.email,
+        type: 'bank_setup_email'
       }),
-      prisma.otpCode.findFirst({
-        where: {
-          userId: user.id,
-          identifier: user.phone,
-          type: 'bank_setup_phone',
-          expiresAt: { gt: new Date() }
-        },
-        orderBy: { createdAt: 'desc' }
+      getLatestBankSetupOtp({
+        userId: user.id,
+        identifier: user.phone,
+        type: 'bank_setup_phone'
       })
     ]);
 
     if (!emailOtpRecord || !smsOtpRecord) {
+      await prisma.securityEvent.create({
+        data: {
+          userId: user.id,
+          type: 'BANK_SETUP_OTP_EXPIRED_OR_MISSING',
+          metadata: {
+            email: user.email,
+            phone: user.phone
+          }
+        }
+      });
+
       return Response.json(
         { error: 'OTP challenge not found or expired. Please resend OTP.' },
         { status: 400 }
       );
     }
 
-    const emailOtpOk = matchesOtp(data.emailOtp, emailOtpRecord.otpEnc);
-    const smsOtpOk = matchesOtp(data.smsOtp, smsOtpRecord.otpEnc);
+    const emailOtpOk = otpMatches(data.emailOtp, emailOtpRecord.otpEnc);
+    const smsOtpOk = otpMatches(data.smsOtp, smsOtpRecord.otpEnc);
 
     if (!emailOtpOk || !smsOtpOk) {
+      await prisma.securityEvent.create({
+        data: {
+          userId: user.id,
+          type: 'BANK_SETUP_OTP_INVALID',
+          metadata: {
+            emailOtpProvided: Boolean(data.emailOtp),
+            smsOtpProvided: Boolean(data.smsOtp)
+          }
+        }
+      });
+
       return Response.json(
         { error: 'Invalid OTP. Please verify both email and SMS OTP.' },
         { status: 401 }
@@ -114,17 +146,18 @@ export async function POST(request) {
         data: { bankOnboardingCompleted: true }
       });
 
-      await tx.otpCode.deleteMany({
-        where: {
-          userId: user.id,
-          type: {
-            in: ['bank_setup_email', 'bank_setup_phone']
-          }
-        }
-      });
-
       return created;
     });
+
+    try {
+      await clearBankSetupOtps({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone
+      });
+    } catch {
+      // Bank setup has already completed; OTP cleanup failure should not block the user flow.
+    }
 
     return Response.json(
       {

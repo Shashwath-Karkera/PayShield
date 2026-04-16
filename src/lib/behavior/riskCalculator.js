@@ -1,31 +1,43 @@
 import { BehaviorMessages } from './messages.js';
 
 export function calculateRisk(data) {
+  const payload = {
+    isAutofill: Boolean(data?.isAutofill),
+    hasA11yActive: Boolean(data?.hasA11yActive),
+    durationMs: Number(data?.durationMs || 0),
+    loginHour: Number(data?.loginHour || 0),
+    totalChars: Number(data?.totalChars || 0),
+    backspaceCount: Number(data?.backspaceCount || 0),
+    keyPresses: Array.isArray(data?.keyPresses) ? data.keyPresses : [],
+    mouseMoves: Array.isArray(data?.mouseMoves) ? data.mouseMoves : [],
+    isMobile: Boolean(data?.isMobile)
+  };
+
   let score = 0;
   const triggeredRules = [];
   const messages = [];
 
   // Skip strict analysis if explicitly an autofill or accessibility tool
-  if (data.isAutofill || data.hasA11yActive) {
+  if (payload.isAutofill || payload.hasA11yActive) {
     return { score: 0, riskLevel: 'LOW', action: 'allow', triggeredRules, messages };
   }
 
   // Rule 1: Login < 2 Seconds 
-  if (data.durationMs < 2000) {
+  if (payload.durationMs < 2000) {
     score += 30;
     triggeredRules.push('FAST_LOGIN');
     messages.push(BehaviorMessages.FAST_LOGIN);
   }
 
   // Rule 2: Login Hour (12 AM - 5 AM)
-  if (data.loginHour >= 0 && data.loginHour <= 5) {
+  if (payload.loginHour >= 0 && payload.loginHour <= 5) {
     score += 15;
     triggeredRules.push('UNUSUAL_HOUR');
     messages.push(BehaviorMessages.UNUSUAL_HOUR);
   }
 
-  if (data.totalChars > 0 && data.keyPresses.length > 2) {
-    const charsPerMin = (data.totalChars / Math.max(1, data.durationMs)) * 60000;
+  if (payload.totalChars > 0 && payload.keyPresses.length > 2) {
+    const charsPerMin = (payload.totalChars / Math.max(1, payload.durationMs)) * 60000;
     
     // Rule 3: Typing > 300 chars/min
     if (charsPerMin > 300) {
@@ -36,8 +48,8 @@ export function calculateRisk(data) {
 
     let totalPauses = 0;
     let validPauses = 0;
-    for (let i = 1; i < data.keyPresses.length; i++) {
-        const pause = data.keyPresses[i] - data.keyPresses[i-1];
+    for (let i = 1; i < payload.keyPresses.length; i++) {
+      const pause = payload.keyPresses[i] - payload.keyPresses[i-1];
         if (pause > 0 && pause < 1000) {
             totalPauses += pause;
             validPauses++;
@@ -53,7 +65,7 @@ export function calculateRisk(data) {
     }
 
     // Rule 5: No backspaces on long inputs
-    if (data.totalChars >= 20 && data.backspaceCount === 0) {
+    if (payload.totalChars >= 20 && payload.backspaceCount === 0) {
       score += 20;
       triggeredRules.push('NO_BACKSPACES');
       messages.push(BehaviorMessages.NO_BACKSPACES);
@@ -61,21 +73,21 @@ export function calculateRisk(data) {
   }
 
   // Desktop Mouse rules
-  if (!data.isMobile) {
-    if (data.mouseMoves.length < 3) {
+  if (!payload.isMobile) {
+    if (payload.mouseMoves.length < 3) {
       score += 25;
       triggeredRules.push('NO_MOUSE_MOVEMENT');
       messages.push(BehaviorMessages.NO_MOUSE_MOVEMENT);
     } else {
-      const first = data.mouseMoves[0];
-      const last = data.mouseMoves[data.mouseMoves.length - 1];
+      const first = payload.mouseMoves[0];
+      const last = payload.mouseMoves[payload.mouseMoves.length - 1];
       const straightDist = Math.sqrt(Math.pow(last.x - first.x, 2) + Math.pow(last.y - first.y, 2));
       
       let pathDist = 0;
-      for (let i = 1; i < data.mouseMoves.length; i++) {
+      for (let i = 1; i < payload.mouseMoves.length; i++) {
         pathDist += Math.sqrt(
-          Math.pow(data.mouseMoves[i].x - data.mouseMoves[i-1].x, 2) + 
-          Math.pow(data.mouseMoves[i].y - data.mouseMoves[i-1].y, 2)
+          Math.pow(payload.mouseMoves[i].x - payload.mouseMoves[i-1].x, 2) + 
+          Math.pow(payload.mouseMoves[i].y - payload.mouseMoves[i-1].y, 2)
         );
       }
       

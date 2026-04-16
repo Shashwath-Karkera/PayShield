@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireSession } from '@/lib/auth/session';
-import { encryptOtp, generateOtpCode } from '@/lib/security/verification';
+import { generateOtpCode } from '@/lib/security/verification';
 import { sendEmailOtp, sendSmsOtp } from '@/lib/notifications/otp';
 
 const schema = z.object({
@@ -43,12 +43,19 @@ export async function POST(request) {
       sendSmsOtp({ toPhone: verification.user.phone, toEmail: verification.user.email, otpCode: smsOtp })
     ]);
 
+    if (!emailResult?.sent) {
+      return Response.json(
+        { error: 'Failed to resend email OTP.', detail: emailResult?.error || 'SMTP delivery failed.' },
+        { status: 502 }
+      );
+    }
+
     await prisma.$transaction([
       prisma.authVerification.update({
         where: { id: verification.id },
         data: {
-          emailOtpEnc: encryptOtp(emailOtp),
-          smsOtpEnc: encryptOtp(smsOtp),
+          emailOtpEnc: emailOtp,
+          smsOtpEnc: smsOtp,
           expiresAt
         }
       }),
@@ -63,7 +70,7 @@ export async function POST(request) {
           userId: verification.userId,
           identifier: verification.user.email,
           type: 'email',
-          otpEnc: encryptOtp(emailOtp),
+          otpEnc: emailOtp,
           expiresAt
         }
       }),
@@ -78,7 +85,7 @@ export async function POST(request) {
           userId: verification.userId,
           identifier: verification.user.phone || verification.user.email,
           type: 'phone',
-          otpEnc: encryptOtp(smsOtp),
+          otpEnc: smsOtp,
           expiresAt
         }
       }),
