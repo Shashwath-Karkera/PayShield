@@ -1,20 +1,26 @@
 import { z } from 'zod';
 import { requireSession } from '@/lib/auth/session';
+import { prisma } from '@/lib/prisma';
+import { verifyPayShieldPin } from '@/lib/security/verification';
 
 const schema = z.object({
   userId: z.string().min(1),
   amount: z.number().positive(),
+  payShieldPin: z.string().min(4).max(12),
   currency: z.string().length(3).default('INR'),
   receipt: z.string().min(3).max(40).optional(),
   notes: z.record(z.string(), z.string()).optional()
 });
 
 function getRazorpayConfig() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  const keyId = process.env.PAYSHIELD_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
+  const keySecret =
+    process.env.PAYSHIELD_RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
 
   if (!keyId || !keySecret) {
-    throw new Error('RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are required.');
+    throw new Error(
+      'PAYSHIELD_RAZORPAY_KEY_ID and PAYSHIELD_RAZORPAY_KEY_SECRET (or legacy RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET) are required.'
+    );
   }
 
   return { keyId, keySecret };
@@ -27,6 +33,34 @@ export async function POST(request) {
     const auth = await requireSession(request, data.userId);
     if (!auth.ok) {
       return auth.response;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: data.userId },
+      select: { payShieldPinHash: true, isFrozen: true, frozenReason: true }
+    });
+
+    if (!user) {
+      return Response.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    if (user.isFrozen) {
+      return Response.json(
+        { error: 'Account is frozen.', reason: user.frozenReason || 'Security lock.' },
+        { status: 403 }
+      );
+    }
+
+    if (!user.payShieldPinHash) {
+      return Response.json(
+        { error: 'PayShield PIN is not configured. Complete verification setup first.' },
+        { status: 403 }
+      );
+    }
+
+    const pinOk = await verifyPayShieldPin(data.payShieldPin, user.payShieldPinHash);
+    if (!pinOk) {
+      return Response.json({ error: 'Invalid PayShield PIN.' }, { status: 401 });
     }
 
     const { keyId, keySecret } = getRazorpayConfig();

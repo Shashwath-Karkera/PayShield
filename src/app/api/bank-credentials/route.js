@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { encryptValue, decryptValue } from '@/lib/security/crypto';
 import { requireSession } from '@/lib/auth/session';
+import { matchesOtp } from '@/lib/security/verification';
 
 const createSchema = z.object({
   userId: z.string().min(1),
@@ -9,7 +10,9 @@ const createSchema = z.object({
   accountHolderName: z.string().min(2),
   accountNumber: z.string().min(8),
   ifsc: z.string().min(4),
-  upiId: z.string().min(3)
+  upiId: z.string().min(3),
+  emailOtp: z.string().length(6),
+  smsOtp: z.string().length(6)
 });
 
 export async function POST(request) {
@@ -20,6 +23,72 @@ export async function POST(request) {
     const auth = await requireSession(request, data.userId);
     if (!auth.ok) {
       return auth.response;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: data.userId },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        bankOnboardingCompleted: true
+      }
+    });
+
+    if (!user) {
+      return Response.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    if (!user.email || !user.phone) {
+      return Response.json(
+        { error: 'Email and phone are required for OTP verification.' },
+        { status: 400 }
+      );
+    }
+
+    if (user.bankOnboardingCompleted) {
+      return Response.json(
+        { error: 'Bank setup is already completed.' },
+        { status: 409 }
+      );
+    }
+
+    const [emailOtpRecord, smsOtpRecord] = await Promise.all([
+      prisma.otpCode.findFirst({
+        where: {
+          userId: user.id,
+          identifier: user.email,
+          type: 'bank_setup_email',
+          expiresAt: { gt: new Date() }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.otpCode.findFirst({
+        where: {
+          userId: user.id,
+          identifier: user.phone,
+          type: 'bank_setup_phone',
+          expiresAt: { gt: new Date() }
+        },
+        orderBy: { createdAt: 'desc' }
+      })
+    ]);
+
+    if (!emailOtpRecord || !smsOtpRecord) {
+      return Response.json(
+        { error: 'OTP challenge not found or expired. Please resend OTP.' },
+        { status: 400 }
+      );
+    }
+
+    const emailOtpOk = matchesOtp(data.emailOtp, emailOtpRecord.otpEnc);
+    const smsOtpOk = matchesOtp(data.smsOtp, smsOtpRecord.otpEnc);
+
+    if (!emailOtpOk || !smsOtpOk) {
+      return Response.json(
+        { error: 'Invalid OTP. Please verify both email and SMS OTP.' },
+        { status: 401 }
+      );
     }
 
     const payload = encryptValue(
@@ -43,6 +112,15 @@ export async function POST(request) {
       await tx.user.update({
         where: { id: data.userId },
         data: { bankOnboardingCompleted: true }
+      });
+
+      await tx.otpCode.deleteMany({
+        where: {
+          userId: user.id,
+          type: {
+            in: ['bank_setup_email', 'bank_setup_phone']
+          }
+        }
       });
 
       return created;

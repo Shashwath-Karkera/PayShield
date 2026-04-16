@@ -36,6 +36,7 @@ export async function POST(request) {
 
     const emailOtp = generateOtpCode();
     const smsOtp = generateOtpCode();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     const [emailResult, smsResult] = await Promise.all([
       sendEmailOtp({ toEmail: verification.user.email, otpCode: emailOtp }),
@@ -47,7 +48,38 @@ export async function POST(request) {
         where: { id: verification.id },
         data: {
           emailOtpEnc: encryptOtp(emailOtp),
-          smsOtpEnc: encryptOtp(smsOtp)
+          smsOtpEnc: encryptOtp(smsOtp),
+          expiresAt
+        }
+      }),
+      prisma.otpCode.deleteMany({
+        where: {
+          identifier: verification.user.email,
+          type: 'email'
+        }
+      }),
+      prisma.otpCode.create({
+        data: {
+          userId: verification.userId,
+          identifier: verification.user.email,
+          type: 'email',
+          otpEnc: encryptOtp(emailOtp),
+          expiresAt
+        }
+      }),
+      prisma.otpCode.deleteMany({
+        where: {
+          identifier: verification.user.phone || verification.user.email,
+          type: 'phone'
+        }
+      }),
+      prisma.otpCode.create({
+        data: {
+          userId: verification.userId,
+          identifier: verification.user.phone || verification.user.email,
+          type: 'phone',
+          otpEnc: encryptOtp(smsOtp),
+          expiresAt
         }
       }),
       prisma.securityEvent.create({

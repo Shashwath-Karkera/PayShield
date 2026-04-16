@@ -1,100 +1,97 @@
-import { NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
-import { generateToken, generateRefreshToken } from '@/lib/auth/utils';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { matchesOtp } from '@/lib/security/verification';
+import { generateSessionToken } from '@/lib/security/device';
 
-const sql = neon(process.env.DATABASE_URL);
+const schema = z.object({
+  identifier: z.string().min(3),
+  otp: z.string().length(6),
+  type: z.enum(['email', 'phone'])
+});
 
 export async function POST(request) {
   try {
-    const { identifier, otp, type } = await request.json();
-    
-    console.log('Verify OTP request:', { identifier, otp, type });
-    
-    if (!identifier || !otp || !type) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-    
-    // Find the OTP in database
-    const result = await sql`
-      SELECT * FROM otp_codes 
-      WHERE identifier = ${identifier} 
-        AND type = ${type}
-        AND expires_at > NOW()
-      ORDER BY created_at DESC
-      LIMIT 1
-    `;
-    
-    if (result.length === 0) {
-      return NextResponse.json({ error: 'OTP not found or expired. Please request a new code.' }, { status: 400 });
-    }
-    
-    const otpRecord = result[0];
-    
-    if (otpRecord.otp !== otp) {
-      return NextResponse.json({ error: 'Invalid OTP. Please try again.' }, { status: 400 });
-    }
-    
-    // Delete used OTP
-    await sql`
-      DELETE FROM otp_codes WHERE id = ${otpRecord.id}
-    `;
-    
-    // Update user verification status
-    if (type === 'email') {
-      await sql`
-        UPDATE users SET is_email_verified = true WHERE email = ${identifier}
-      `;
-    } else if (type === 'phone') {
-      await sql`
-        UPDATE users SET is_phone_verified = true WHERE phone = ${identifier}
-      `;
-    }
-    
-    // Check if both are verified
-    const userResult = await sql`
-      SELECT id, email, phone, full_name, is_email_verified, is_phone_verified FROM users 
-      WHERE ${type === 'email' ? 'email' : 'phone'} = ${identifier}
-    `;
-    
-    const user = userResult[0];
-    const isFullyVerified = user?.is_email_verified && user?.is_phone_verified;
-    
-    console.log(`✅ OTP verified for ${identifier}`);
-    console.log(`isFullyVerified: ${isFullyVerified}`);
-    
-    // If both are verified, generate tokens
-    let token = null;
-    let refreshToken = null;
-    
-    if (isFullyVerified && user) {
-      token = generateToken(user.id, user.email);
-      refreshToken = generateRefreshToken(user.id);
-      
-      // Create session
-      await sql`
-        INSERT INTO user_sessions (user_id, session_token, is_active, expires_at, created_at)
-        VALUES (${user.id}, ${refreshToken}, true, NOW() + INTERVAL '7 days', NOW())
-      `;
-      
-      console.log(`Tokens generated for user: ${user.email}`);
-    }
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'OTP verified successfully',
-      isFullyVerified: isFullyVerified || false,
-      token: token || null,
-      refreshToken: refreshToken || null,
-      user: user ? {
-        id: user.id,
-        email: user.email,
-        name: user.full_name,
-        phone: user.phone
-      } : null
+    const data = schema.parse(await request.json());
+    const identifier = data.identifier.trim();
+
+    const otpRecord = await prisma.otpCode.findFirst({
+      where: {
+        identifier,
+        type: data.type,
+        expiresAt: { gt: new Date() }
+      },
+      orderBy: { createdAt: 'desc' }
     });
-    
+
+    if (!otpRecord) {
+      return Response.json({ error: 'OTP not found or expired. Please request a new code.' }, { status: 400 });
+    }
+
+    const otpOk = matchesOtp(data.otp, otpRecord.otpEnc);
+    if (!otpOk) {
+      return Response.json({ error: 'Invalid OTP. Please try again.' }, { status: 400 });
+    }
+
+    const user = await prisma.user.findFirst({
+      where:
+        data.type === 'email'
+          ? { email: identifier.toLowerCase() }
+          : { phone: identifier }
+    });
+
+    if (!user) {
+      return Response.json({ error: 'User not found for OTP identifier.' }, { status: 404 });
+    }
+
+    await prisma.otpCode.delete({ where: { id: otpRecord.id } });
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data:
+        data.type === 'email'
+          ? { isEmailVerified: true }
+          : { isPhoneVerified: true }
+    });
+
+    const isFullyVerified = Boolean(updatedUser.isEmailVerified && updatedUser.isPhoneVerified);
+
+    let token = null;
+    if (isFullyVerified) {
+      token = generateSessionToken();
+      await prisma.session.create({
+        data: {
+          token,
+          userId: updatedUser.id,
+          isVerified: true,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        }
+      });
+    }
+
+    return Response.json(
+      {
+        success: true,
+        message: 'OTP verified successfully.',
+        isFullyVerified,
+        token,
+        refreshToken: null,
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          phone: updatedUser.phone
+        }
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('OTP verification error:', error);
-    return NextResponse.json({ error: 'Verification failed: ' + error.message }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return Response.json({ error: 'Validation failed.', issues: error.issues }, { status: 400 });
+    }
+
+    return Response.json(
+      { error: 'Verification failed.', detail: String(error.message || error) },
+      { status: 500 }
+    );
   }
 }
