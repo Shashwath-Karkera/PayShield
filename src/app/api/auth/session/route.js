@@ -17,7 +17,9 @@ export async function GET(request) {
             id: true,
             name: true,
             email: true,
+            phone: true,
             balance: true,
+            bankOnboardingCompleted: true,
             isFrozen: true,
             frozenReason: true
           }

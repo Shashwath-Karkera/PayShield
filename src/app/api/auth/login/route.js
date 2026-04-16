@@ -1,99 +1,257 @@
-import { NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
-import { comparePassword, generateToken, generateRefreshToken } from '@/lib/auth/utils';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
 import { calculateRisk } from '@/lib/behavior/riskCalculator';
-import { db } from '@/lib/db';
-import { behavioralEvents } from '@/lib/db/schema';
+import { verifySpicePassword } from '@/lib/security/password';
+import { encryptOtp, generateOtpCode } from '@/lib/security/verification';
+import { generateSessionToken } from '@/lib/security/device';
 
-const sql = neon(process.env.DATABASE_URL);
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8).max(128),
+  deviceDna: z.string().min(6),
+  ipAddress: z.string().min(3).optional(),
+  locationCountry: z.string().min(2).optional(),
+  locationCity: z.string().min(1).optional(),
+  browserSignature: z.string().min(3).optional(),
+  screenResolution: z.string().min(3).optional(),
+  behaviorData: z.any().optional()
+});
 
 export async function POST(request) {
   try {
-    const payload = await request.json();
-    const { email, password, deviceDna, ipAddress, locationCountry, locationCity, browserSignature, screenResolution, behaviorData } = payload;
-    
-    // Find user first so we can tie the threat log to their ID if it exists
-    const users = await sql`
-      SELECT * FROM users WHERE email = ${email}
-    `;
-    const user = users[0];
+    const data = loginSchema.parse(await request.json());
+    const email = data.email.trim().toLowerCase();
 
-    // Evaluate behavioral risk if metric exists
-    let riskAnalysis = { score: 0, riskLevel: 'LOW', action: 'allow', triggeredRules: [], messages: [] };
-    if (behaviorData) {
-      riskAnalysis = calculateRisk(behaviorData);
-      
-      // Log to Threat Admin Database NOW (before any 403 blocks or 401 kicks)
-      try {
-           await db.insert(behavioralEvents).values({
-               userId: user ? user.id : null, // Null if bot guessed random fake email
-               eventType: 'login',
-               riskScore: riskAnalysis.score,
-               triggeredRules: riskAnalysis.triggeredRules,
-               actionTaken: riskAnalysis.action,
-               metrics: behaviorData
-           });
-       } catch (e) {
-           console.error('Failed logging behavior event', e);
-       }
-
-      if (riskAnalysis.action === 'block') {
-         return NextResponse.json({ error: 'Security systems triggered. Access denied.', messages: riskAnalysis.messages, _debug_blocked_reason: 'CRITICAL_RISK' }, { status: 403 });
-      }
-    }
-
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 });
-    }
-    
-    // Verify password
-    const isValid = await comparePassword(password, user.password);
-    if (!isValid) {
-      return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 });
+      return Response.json({ error: 'Invalid credentials.' }, { status: 401 });
     }
 
-    if (riskAnalysis.action === 'require_otp') {
-        // Enforce OTP challenge flow directly by telling UI 
-        return NextResponse.json({ 
-             success: true,
-             requiresAdditionalVerification: true,
-             verificationMethod: 'OTP',
-             risk: { score: riskAnalysis.score, reasons: riskAnalysis.messages }
-        });
+    const passwordOk = await verifySpicePassword(data.password, user.spiceSalt, user.passwordHash);
+    if (!passwordOk) {
+      return Response.json({ error: 'Invalid credentials.' }, { status: 401 });
     }
-    
-    // Generate tokens
-    const token = generateToken(user.id, user.email);
-    const refreshToken = generateRefreshToken(user.id);
-    
-    // Update last login
-    await sql`
-      UPDATE users 
-      SET last_login = NOW(), 
-          device_id = ${deviceDna || user.device_id},
-          location = ${locationCountry || user.location}
-      WHERE id = ${user.id}
-    `;
-    
-    return NextResponse.json({
-      success: true,
-      token,
-      refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.full_name,
-        phone: user.phone,
-        balance: user.balance
-      },
-      requiresAdditionalVerification: false,
-      risk: { score: riskAnalysis.score, reasons: riskAnalysis.messages },
-      knownDevice: true,
-      hasDeviceKey: false
+
+    let riskAnalysis = {
+      score: 0,
+      riskLevel: 'LOW',
+      action: 'allow',
+      triggeredRules: [],
+      messages: []
+    };
+
+    if (data.behaviorData) {
+      riskAnalysis = calculateRisk(data.behaviorData);
+    }
+
+    if (riskAnalysis.action === 'block') {
+      await prisma.securityEvent.create({
+        data: {
+          userId: user.id,
+          type: 'LOGIN_BLOCKED_BEHAVIOR',
+          ipAddress: data.ipAddress,
+          metadata: {
+            riskScore: riskAnalysis.score,
+            riskReasons: riskAnalysis.messages,
+            triggeredRules: riskAnalysis.triggeredRules
+          }
+        }
+      });
+
+      return Response.json(
+        {
+          error: 'Security systems triggered. Access denied.',
+          messages: riskAnalysis.messages
+        },
+        { status: 403 }
+      );
+    }
+
+    const riskReasons = [...riskAnalysis.messages];
+
+    if (
+      user.lastKnownDeviceDna &&
+      data.deviceDna &&
+      user.lastKnownDeviceDna !== data.deviceDna
+    ) {
+      riskReasons.push('Device mismatch detected from last known trusted device.');
+    }
+
+    if (
+      user.lastKnownCountry &&
+      data.locationCountry &&
+      user.lastKnownCountry.toLowerCase() !== data.locationCountry.toLowerCase()
+    ) {
+      riskReasons.push('Geo mismatch detected from last known login country.');
+    }
+
+    const normalizedRiskScore = Math.min(
+      0.99,
+      Number((riskAnalysis.score / 100 + riskReasons.length * 0.05).toFixed(3))
+    );
+
+    const sessionToken = generateSessionToken();
+    const now = Date.now();
+    const expiresAt = new Date(now + 10 * 60 * 1000);
+    const emailOtp = generateOtpCode();
+    const smsOtp = generateOtpCode();
+
+    const session = await prisma.session.create({
+      data: {
+        token: sessionToken,
+        userId: user.id,
+        ipAddress: data.ipAddress,
+        locationCountry: data.locationCountry,
+        locationCity: data.locationCity,
+        isVerified: false,
+        expiresAt: new Date(now + 12 * 60 * 60 * 1000)
+      }
     });
-    
+
+    const verification = await prisma.authVerification.create({
+      data: {
+        userId: user.id,
+        sessionId: session.id,
+        emailOtpEnc: encryptOtp(emailOtp),
+        smsOtpEnc: encryptOtp(smsOtp),
+        ipAddress: data.ipAddress || '0.0.0.0',
+        deviceDna: data.deviceDna,
+        locationCountry: data.locationCountry,
+        locationCity: data.locationCity,
+        riskScore: normalizedRiskScore,
+        riskReasons,
+        expiresAt
+      }
+    });
+
+    const otpWrites = [
+      prisma.otpCode.deleteMany({
+        where: {
+          identifier: user.email,
+          type: 'email'
+        }
+      }),
+      prisma.otpCode.create({
+        data: {
+          userId: user.id,
+          identifier: user.email,
+          type: 'email',
+          otpEnc: encryptOtp(emailOtp),
+          expiresAt
+        }
+      })
+    ];
+
+    if (user.phone) {
+      otpWrites.push(
+        prisma.otpCode.deleteMany({
+          where: {
+            identifier: user.phone,
+            type: 'phone'
+          }
+        }),
+        prisma.otpCode.create({
+          data: {
+            userId: user.id,
+            identifier: user.phone,
+            type: 'phone',
+            otpEnc: encryptOtp(smsOtp),
+            expiresAt
+          }
+        })
+      );
+    }
+
+    await prisma.$transaction(otpWrites);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLoginAt: new Date(),
+        lastKnownIp: data.ipAddress,
+        lastKnownDeviceDna: data.deviceDna,
+        lastKnownCountry: data.locationCountry,
+        lastKnownCity: data.locationCity
+      }
+    });
+
+    await prisma.securityEvent.create({
+      data: {
+        userId: user.id,
+        type: 'LOGIN_CHALLENGE_ISSUED',
+        ipAddress: data.ipAddress,
+        metadata: {
+          verificationId: verification.id,
+          riskScore: normalizedRiskScore,
+          riskReasons,
+          triggeredRules: riskAnalysis.triggeredRules
+        }
+      }
+    });
+
+    if (data.behaviorData) {
+      await prisma.behavioralLog.create({
+        data: {
+          userId: user.id,
+          mouseShakeIntensity: Number(data.behaviorData.mouseShakeIntensity || 0),
+          scrollSpeed: Number(data.behaviorData.scrollSpeed || 0),
+          paymentFrequency: Number(data.behaviorData.paymentFrequency || 0),
+          transferAllIntent: Boolean(data.behaviorData.transferAllIntent),
+          locationCountry: data.locationCountry,
+          locationCity: data.locationCity,
+          ipAddress: data.ipAddress,
+          deviceDna: data.deviceDna,
+          browserSignature: data.browserSignature,
+          screenResolution: data.screenResolution
+        }
+      });
+    }
+
+    try {
+      const [{ sendVerificationEmail }, { sendVerificationSMS }] = await Promise.all([
+        import('@/lib/services/emailService'),
+        import('@/lib/services/smsService')
+      ]);
+
+      await sendVerificationEmail(user.email, emailOtp, user.name);
+      if (user.phone) {
+        await sendVerificationSMS(user.phone, smsOtp);
+      }
+    } catch {
+      // Keep response successful in local/dev environments.
+    }
+
+    return Response.json(
+      {
+        success: true,
+        requiresAdditionalVerification: true,
+        sessionToken,
+        verification: {
+          id: verification.id,
+          riskScore: normalizedRiskScore,
+          riskReasons,
+          expiresAt,
+          devEmailOtp: process.env.NODE_ENV === 'production' ? undefined : emailOtp,
+          devSmsOtp: process.env.NODE_ENV === 'production' ? undefined : smsOtp
+        },
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          phone: user.phone,
+          balance: user.balance
+        }
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('Login error:', error);
-    return NextResponse.json({ error: 'Login failed.', detail: error.message }, { status: 500 });
+    if (error instanceof z.ZodError) {
+      return Response.json({ error: 'Validation failed.', issues: error.issues }, { status: 400 });
+    }
+
+    return Response.json(
+      { error: 'Login failed.', detail: String(error.message || error) },
+      { status: 500 }
+    );
   }
 }

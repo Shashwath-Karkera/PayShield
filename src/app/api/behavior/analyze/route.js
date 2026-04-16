@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { behavioralEvents } from '@/lib/db/schema';
+import { prisma } from '@/lib/prisma';
 import { calculateRisk } from '@/lib/behavior/riskCalculator';
 
 export async function POST(req) {
@@ -14,19 +13,21 @@ export async function POST(req) {
 
     const analysis = calculateRisk(behaviorData);
 
-    // Try to safely store the log with Drizzle
+    // Persist behavior event in canonical Prisma schema.
     try {
-        await db.insert(behavioralEvents).values({
+      await prisma.behavioralEvent.create({
+        data: {
           userId: userId || null,
           sessionId: sessionId || null,
           eventType,
-          riskScore: analysis.score,
-          triggeredRules: analysis.triggeredRules,
-          actionTaken: analysis.action,
+          riskScore: Number(analysis.score || 0),
+          triggeredRules: analysis.triggeredRules || [],
+          actionTaken: analysis.action || 'allow',
           metrics: behaviorData
-        });
+        }
+      });
     } catch (e) {
-        console.error("Failed to log behavior event:", e);
+      console.error('Failed to log behavior event:', e);
     }
 
     return NextResponse.json(analysis);

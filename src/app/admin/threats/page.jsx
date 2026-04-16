@@ -3,18 +3,33 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authFetch } from '@/lib/http/authFetch';
+import {
+  FaBell,
+  FaGear,
+  FaList,
+  FaMoneyBillTransfer,
+  FaQrcode,
+  FaRightFromBracket,
+  FaShieldHalved,
+  FaTableCellsLarge,
+  FaTriangleExclamation,
+  FaUser,
+  FaHourglassHalf,
+  FaCircleExclamation
+} from 'react-icons/fa6';
 
 // ─── Sidebar nav items ───────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { icon: '⊞', label: 'Dashboard',        href: '/dashboard',     active: false },
-  { icon: '💸', label: 'Pay',              href: '/payment',       active: false },
-  { icon: '📋', label: 'Transactions',     href: '/transactions',  active: false },
-  { icon: '🔔', label: 'Notifications',    href: '/notifications', active: false },
-  { icon: '📷', label: 'QR Payment',       href: '/qr',            active: false },
-  { icon: '👤', label: 'Profile',          href: '/profile',       active: false },
-  { icon: '🛡️', label: 'Security',         href: '/security',      active: false },
-  { icon: '🚨', label: 'Threat Admin',     href: '/admin/threats', active: true  },
-  { icon: '⚙️', label: 'Settings',         href: '/settings',      active: false },
+  { icon: FaTableCellsLarge, label: 'Dashboard', href: '/dashboard', active: false },
+  { icon: FaMoneyBillTransfer, label: 'Pay', href: '/payment', active: false },
+  { icon: FaList, label: 'Transactions', href: '/transactions', active: false },
+  { icon: FaBell, label: 'Notifications', href: '/notifications', active: false },
+  { icon: FaQrcode, label: 'QR Payment', href: '/qr', active: false },
+  { icon: FaUser, label: 'Profile', href: '/profile', active: false },
+  { icon: FaShieldHalved, label: 'Security', href: '/security', active: false },
+  { icon: FaTriangleExclamation, label: 'Threat Admin', href: '/admin/threats', active: true },
+  { icon: FaGear, label: 'Settings', href: '/settings', active: false },
 ];
 
 export default function BehavioralThreatsAdmin() {
@@ -27,7 +42,12 @@ export default function BehavioralThreatsAdmin() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/behavior/stats');
+      const adminToken = localStorage.getItem('ps_admin_token') || '';
+      const res = await fetch('/api/behavior/stats', {
+        headers: adminToken
+          ? { 'x-admin-token': adminToken }
+          : undefined
+      });
       if (res.ok) {
         setStats(await res.json());
       }
@@ -39,31 +59,63 @@ export default function BehavioralThreatsAdmin() {
   };
 
   useEffect(() => {
-    // Auth & User Extraction
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/en/login');
-      return;
-    }
-    
-    let userEmail = localStorage.getItem('userEmail');
-    let userName = localStorage.getItem('userName');
-    
-    const finalName = userName || (userEmail ? userEmail.split('@')[0] : 'User');
-    
-    setUser({
-      name: finalName,
-      email: userEmail || 'user@example.com',
-      avatar: finalName.charAt(0).toUpperCase()
-    });
+    let interval;
 
-    // Fetch Stats
-    fetchStats();
-    const interval = setInterval(fetchStats, 15000); // 15s updates
-    return () => clearInterval(interval);
+    const init = async () => {
+      const token = localStorage.getItem('ps_session_token') || localStorage.getItem('token');
+      const adminToken = localStorage.getItem('ps_admin_token') || '';
+      if (!token && !adminToken) {
+        router.push('/admin/login');
+        return;
+      }
+
+      try {
+        const res = token
+          ? await authFetch('/api/admin/access')
+          : await fetch('/api/admin/access', {
+              headers: { 'x-admin-token': adminToken }
+            });
+        const data = await res.json();
+
+        if (!res.ok || !data?.isSystemAdmin) {
+          router.push('/admin/login');
+          return;
+        }
+      } catch (error) {
+        router.push('/admin/login');
+        return;
+      }
+
+      const userEmail = localStorage.getItem('ps_user_email') || localStorage.getItem('userEmail');
+      const userName = localStorage.getItem('ps_user_name') || localStorage.getItem('userName');
+      const finalName = userName || (userEmail ? userEmail.split('@')[0] : 'System Admin');
+
+      setUser({
+        name: finalName,
+        email: userEmail || 'admin@payshield.local',
+        avatar: finalName.charAt(0).toUpperCase()
+      });
+
+      fetchStats();
+      interval = setInterval(fetchStats, 15000);
+    };
+
+    init();
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [router]);
 
   const handleLogout = () => {
+    localStorage.removeItem('ps_session_token');
+    localStorage.removeItem('ps_verification_id');
+    localStorage.removeItem('ps_user_id');
+    localStorage.removeItem('ps_user_email');
+    localStorage.removeItem('ps_user_name');
+    localStorage.removeItem('ps_admin_token');
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userEmail');
@@ -220,7 +272,7 @@ export default function BehavioralThreatsAdmin() {
         {/* ── Sidebar ── */}
         <aside className={`ps-sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="ps-sidebar-logo">
-            <span>🛡️</span>
+            <span><FaShieldHalved /></span>
             <strong>PayShield</strong>
           </div>
 
@@ -239,7 +291,7 @@ export default function BehavioralThreatsAdmin() {
                 href={item.href}
                 className={`ps-nav-item ${item.active ? 'active' : ''}`}
               >
-                <span className="ni">{item.icon}</span>
+                <span className="ni"><item.icon /></span>
                 {item.label}
               </Link>
             ))}
@@ -247,7 +299,7 @@ export default function BehavioralThreatsAdmin() {
 
           <div className="ps-sidebar-bottom">
             <button className="ps-logout-btn" onClick={handleLogout}>
-              <span>🚪</span> Log Out
+              <span><FaRightFromBracket /></span> Log Out
             </button>
           </div>
         </aside>
@@ -257,7 +309,7 @@ export default function BehavioralThreatsAdmin() {
           {/* Top bar */}
           <header className="ps-topbar">
             <div className="ps-topbar-left">
-              <h1>Threat Administrator Dashboard 🚨</h1>
+              <h1>Threat Administrator Dashboard</h1>
               <p>Real-time behavioral monitoring and anomaly detection.</p>
             </div>
             <div className="ps-topbar-right">
@@ -273,12 +325,12 @@ export default function BehavioralThreatsAdmin() {
             
             {loadingStats ? (
               <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
-                <span style={{ fontSize: '40px', display: 'block', marginBottom: '10px' }}>⏳</span>
+                <span style={{ fontSize: '40px', display: 'block', marginBottom: '10px' }}><FaHourglassHalf /></span>
                 Fetching Live Threat Data...
               </div>
             ) : !stats ? (
               <div style={{ textAlign: 'center', padding: '60px 20px', color: '#ef4444' }}>
-                <span style={{ fontSize: '40px', display: 'block', marginBottom: '10px' }}>⚠️</span>
+                <span style={{ fontSize: '40px', display: 'block', marginBottom: '10px' }}><FaCircleExclamation /></span>
                 Failed to load threat intelligence data.
               </div>
             ) : (

@@ -1,35 +1,54 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { behavioralEvents } from '@/lib/db/schema';
-import { desc, sql } from 'drizzle-orm';
+import { prisma } from '@/lib/prisma';
+import { requireSession } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+function getSystemAdminEmail() {
+  return (
+    process.env.PAYSHIELD_ADMIN_EMAIL ||
+    process.env.SYSTEM_ADMIN_EMAIL ||
+    ''
+  )
+    .trim()
+    .toLowerCase();
+}
+
+export async function GET(request) {
   try {
-    const totalEventsResult = await db.select({ count: sql`count(*)` }).from(behavioralEvents);
-    const blockedEventsResult = await db.select({ count: sql`count(*)` })
-        .from(behavioralEvents)
-        .where(sql`action_taken = 'block'`);
-    
-    // Exclude the massive 'metrics' JSON object which causes OOM / 128kb Next.js limits
-    const recentEvents = await db.select({
-      id: behavioralEvents.id,
-      userId: behavioralEvents.userId,
-      eventType: behavioralEvents.eventType,
-      riskScore: behavioralEvents.riskScore,
-      triggeredRules: behavioralEvents.triggeredRules,
-      actionTaken: behavioralEvents.actionTaken,
-      createdAt: behavioralEvents.createdAt
-    })
-        .from(behavioralEvents)
-        .orderBy(desc(behavioralEvents.createdAt))
-        .limit(10);
+    const auth = await requireSession(request, undefined, { requireVerified: false });
+    if (!auth.ok) {
+      return auth.response;
+    }
+
+    const configuredAdmin = getSystemAdminEmail();
+    const sessionEmail = String(auth.session?.user?.email || '').toLowerCase();
+    if (!configuredAdmin || configuredAdmin !== sessionEmail) {
+      return NextResponse.json({ error: 'Forbidden.' }, { status: 403 });
+    }
+
+    const [totalEvents, blockedAttempts, recentEvents] = await Promise.all([
+      prisma.behavioralEvent.count(),
+      prisma.behavioralEvent.count({ where: { actionTaken: 'block' } }),
+      prisma.behavioralEvent.findMany({
+        select: {
+          id: true,
+          userId: true,
+          eventType: true,
+          riskScore: true,
+          triggeredRules: true,
+          actionTaken: true,
+          createdAt: true
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      })
+    ]);
 
     return NextResponse.json({
-        totalEvents: parseInt(totalEventsResult[0]?.count || 0, 10),
-        blockedAttempts: parseInt(blockedEventsResult[0]?.count || 0, 10),
-        recentThreats: recentEvents
+      totalEvents,
+      blockedAttempts,
+      recentThreats: recentEvents
     });
   } catch (error) {
     console.error("Behavior stats error:", error);
