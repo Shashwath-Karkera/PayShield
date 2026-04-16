@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requireSession } from '@/lib/auth/session';
+import { addLiveThreatEvent } from '@/lib/threats/liveThreats';
 
 const schema = z.object({
   userId: z.string().min(1),
@@ -28,6 +29,22 @@ export async function POST(request) {
           payload: data.payload || null
         }
       }
+    });
+
+    addLiveThreatEvent({
+      id: event.id,
+      type: 'HONEYPOT2_EVENT',
+      ip: data.ipAddress,
+      route: '/api/honeypot2',
+      action: 'Intercepted',
+      severity: 'high',
+      source: 'honeypot2',
+      metadata: {
+        vector: data.vector,
+        payload: data.payload || null,
+      },
+      timestamp: new Date(event.createdAt).getTime(),
+      date: new Date(event.createdAt).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'medium' }),
     });
 
     return Response.json({ ok: true, eventId: event.id }, { status: 201 });

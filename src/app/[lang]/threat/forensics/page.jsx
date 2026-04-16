@@ -10,21 +10,39 @@ export default function ForensicsPage() {
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const simulateSearch = (e) => {
+  const simulateSearch = async (e) => {
     e.preventDefault();
     if (!query) return;
     
     setIsSearching(true);
     setResults([]);
     
-    setTimeout(() => {
-      setResults([
-        { id: 1, type: "Log", source: "Auth Service", match: query, time: "2023-11-20 14:32:01 UTC", details: `Failed login attempt matched pattern '${query}'.` },
-        { id: 2, type: "Database", source: "Users Table", match: query, time: "2023-11-20 12:15:44 UTC", details: `Suspicious query executed containing '${query}' in WHERE clause.` },
-        { id: 3, type: "Network", source: "WAF Logs", match: query, time: "2023-11-19 09:01:22 UTC", details: `Blocked payload matching signature for '${query}'.` },
-      ]);
-      setIsSearching(false);
-    }, 1500);
+    try {
+      const res = await fetch("/api/threat-dashboard");
+      const json = await res.json();
+      
+      const q = query.toLowerCase();
+      // Filter recentEvents by query matches
+      const matches = (json.recentEvents || []).filter(evt => 
+        evt.id.toLowerCase().includes(q) || 
+        evt.ip.toLowerCase().includes(q) || 
+        evt.type.toLowerCase().includes(q) || 
+        evt.route.toLowerCase().includes(q)
+      );
+
+      setResults(matches.map((evt, idx) => ({
+        id: idx + 1,
+        type: "Network",
+        source: "WAF Logs",
+        match: query,
+        time: evt.date,
+        details: `Intercepted [${evt.action}] ${evt.type} from ${evt.ip} targeting ${evt.route}. ID: ${evt.id}`
+      })));
+    } catch (err) {
+      console.error(err);
+    }
+    
+    setIsSearching(false);
   };
 
   const getIcon = (type) => {
@@ -117,8 +135,7 @@ export default function ForensicsPage() {
            ))}
         </motion.div>
 
-        {/* Results Area */}
-        <div className="w-full pt-1">
+           <div className="w-full pt-1">
            {isSearching ? (
              <div className="w-full py-24 flex flex-col items-center justify-center">
                  <div className="flex gap-2 mb-6">
@@ -132,7 +149,7 @@ export default function ForensicsPage() {
                     ))}
                  </div>
                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-900">Triangulating Signal</p>
-                 <p className="mt-2 text-sm font-medium text-slate-500">Searching across 2.4TB of telemetry</p>
+                 <p className="mt-2 text-sm font-medium text-slate-500">Searching across live telemetry</p>
              </div>
            ) : results.length > 0 ? (
              <div className="flex flex-col gap-5">
