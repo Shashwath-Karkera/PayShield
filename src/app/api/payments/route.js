@@ -5,6 +5,7 @@ import { evaluateRateLimit } from '@/lib/security/rateLimit';
 import { encryptValue } from '@/lib/security/crypto';
 import { requireSession } from '@/lib/auth/session';
 import { verifyPayShieldPin } from '@/lib/security/verification';
+import { addLiveThreatEvent } from '@/lib/threats/liveThreats';
 
 const paymentSchema = z.object({
   userId: z.string().min(1),
@@ -184,6 +185,21 @@ export async function POST(request) {
             slowMotionTrapMs: 30000
           }
         }
+      });
+
+      addLiveThreatEvent({
+        type: 'FLAGGED_PAYMENT',
+        ip: data.ipAddress,
+        route: '/api/payments',
+        action: 'Flagged',
+        severity: 'high',
+        source: 'payments',
+        metadata: {
+          payee: data.payee,
+          amount: data.amount,
+          reasons: ml.reasons,
+          locationCountry: data.locationCountry,
+        },
       });
 
       await wait(30000);

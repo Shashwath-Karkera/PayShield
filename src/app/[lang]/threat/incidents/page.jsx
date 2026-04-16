@@ -1,57 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertOctagon, CheckCircle2, Search, Clock, ShieldAlert } from "lucide-react";
 import ThreatSectionShell from "../ThreatSectionShell";
 
-const INCIDENTS = [
-  {
-    id: "INC-001",
-    type: "DDoS Attack",
-    status: "Active",
-    severity: "Critical",
-    source: "Multiple (Botnet)",
-    target: "Payment Gateway",
-    time: "2 mins ago",
-    description: "A sustained volumetric attack exceeding 50 Gbps targeting the main payment processing endpoints.",
-  },
-  {
-    id: "INC-002",
-    type: "SQL Injection Request",
-    status: "Mitigated",
-    severity: "High",
-    source: "IP: 192.168.1.105",
-    target: "User Database Auth",
-    time: "15 mins ago",
-    description: "Multiple malformed queries attempting to bypass authentication via classic SQLi patterns.",
-  },
-  {
-    id: "INC-003",
-    type: "Account Takeover",
-    status: "Investigating",
-    severity: "Medium",
-    source: "IP: 203.0.113.42",
-    target: "Customer Portals",
-    time: "1 hour ago",
-    description: "Credential stuffing attempt utilizing breached password lists across several retail accounts.",
-  },
-  {
-    id: "INC-004",
-    type: "API Rate Limit Exceeded",
-    status: "Mitigated",
-    severity: "Low",
-    source: "IP: 198.51.100.14",
-    target: "Transactions API",
-    time: "3 hours ago",
-    description: "Unusually high frequency of read requests triggering automated temporary IP ban.",
-  },
-];
-
 const getStatusColor = (status) => {
   switch (status) {
-    case "Active": return "bg-red-50 text-red-700 border-red-200";
-    case "Investigating": return "bg-orange-50 text-orange-700 border-orange-200";
+    case "Blocked": return "bg-red-50 text-red-700 border-red-200";
+    case "Flagged": return "bg-orange-50 text-orange-700 border-orange-200";
     case "Mitigated": return "bg-green-50 text-green-700 border-green-200";
     default: return "bg-slate-50 text-slate-700 border-slate-200";
   }
@@ -59,8 +16,8 @@ const getStatusColor = (status) => {
 
 const getStatusIcon = (status) => {
   switch (status) {
-    case "Active": return <ShieldAlert className="w-4 h-4 text-red-500" />;
-    case "Investigating": return <Clock className="w-4 h-4 text-orange-500" />;
+    case "Blocked": return <ShieldAlert className="w-4 h-4 text-red-500" />;
+    case "Flagged": return <Clock className="w-4 h-4 text-orange-500" />;
     case "Mitigated": return <CheckCircle2 className="w-4 h-4 text-green-500" />;
     default: return <AlertOctagon className="w-4 h-4 text-slate-500" />;
   }
@@ -69,8 +26,40 @@ const getStatusIcon = (status) => {
 export default function IncidentsPage() {
   const [filter, setFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+  const [incidents, setIncidents] = useState([]);
 
-  const filteredIncidents = INCIDENTS.filter(inc => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("/api/threat-dashboard");
+        const json = await res.json();
+        
+        // Map recentEvents to INCIDENTS shape
+        const mappedIncidents = (json.recentEvents || []).map(evt => ({
+          id: evt.id,
+          type: evt.type,
+          status: evt.action, // Blocked, Flagged, Mitigated
+          severity: String(evt.severity || "high").toUpperCase(),
+          source: `IP: ${evt.ip}`,
+          target: evt.route,
+          time: evt.date,
+          description: evt.metadata?.payload
+            ? `Payload captured and classified as ${evt.type} on ${evt.route}.`
+            : `Live threat telemetry recorded a ${evt.type} attempt against ${evt.route}.`,
+        }));
+
+        setIncidents(mappedIncidents);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const filteredIncidents = incidents.filter(inc => {
     const matchesFilter = filter === "All" || inc.status === filter;
     const matchesSearch = inc.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           inc.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -100,7 +89,7 @@ export default function IncidentsPage() {
           </div>
 
           <div className="flex w-full shrink-0 rounded-2xl border border-slate-200/50 bg-slate-100 p-1.5 lg:w-auto">
-            {["All", "Active", "Investigating", "Mitigated"].map(f => (
+            {["All", "Blocked", "Flagged", "Mitigated"].map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}

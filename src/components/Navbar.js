@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import AppIcon from '@/components/AppIcon';
+import { Search, MapPin } from 'lucide-react';
 
 export default function Navbar({ layoutState = 'default' }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -63,9 +64,16 @@ export default function Navbar({ layoutState = 'default' }) {
     <nav className="navbar">
       <div className="nav-container">
         <Link href={`/${currentLang}`} className="logo">
-          <span className="logo-icon"><AppIcon name="shieldCheck" size={18} /></span>
+          <span className="logo-icon"><AppIcon name="shieldCheck" size={32} /></span>
           <span className="logo-text">PayShield</span>
         </Link>
+
+        {/* E-commerce style Search Bar */}
+        <div className="nav-search hidden lg:flex">
+          <MapPin size={20} className="text-gray-400" />
+          <input type="text" placeholder="Search for threats, metrics, logs..." />
+          <Search size={22} className="text-gray-400 ml-2" />
+        </div>
 
         <button 
           className="mobile-menu-btn"
@@ -98,7 +106,7 @@ export default function Navbar({ layoutState = 'default' }) {
           <select
             value={currentLang}
             onChange={switchLanguage}
-            className="nav-lang-select"
+            className="nav-lang-select" style={{ backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #e2e8f0', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', margin: '0 8px', fontWeight: '600' }}
             aria-label="Select language"
           >
             <option value="en">Eng</option>
@@ -117,11 +125,11 @@ export default function Navbar({ layoutState = 'default' }) {
           ) : (
             <>
               <Link href={`/${currentLang}/login`} className="nav-btn login-btn" onClick={() => setMobileMenuOpen(false)}>
-                {dict.login || 'Sign In'}
+                {dict.login || 'Log in'}
               </Link>
               {layoutState !== 'auth' ? (
                 <Link href={`/${currentLang}/register`} className="nav-btn register-btn" onClick={() => setMobileMenuOpen(false)}>
-                  {dict.register || 'Open Account'}
+                  {dict.register || 'Sign up'}
                 </Link>
               ) : null}
             </>
