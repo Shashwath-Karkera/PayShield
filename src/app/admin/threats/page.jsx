@@ -206,6 +206,31 @@ export default function BehavioralThreatsAdmin() {
 
         .ps-body { padding: 24px 28px; display: flex; flex-direction: column; gap: 24px; }
 
+        .ps-notification-list {
+          display: grid;
+          gap: 10px;
+          padding: 16px 22px 20px;
+        }
+        .ps-notification-item {
+          border: 1px solid #e2e8f0;
+          border-left: 4px solid #f59e0b;
+          border-radius: 10px;
+          padding: 10px 12px;
+          background: #fff;
+        }
+        .ps-notification-item.high { border-left-color: #dc2626; background: #fff7f7; }
+        .ps-notification-item.medium { border-left-color: #f59e0b; background: #fffbeb; }
+        .ps-notification-item.normal { border-left-color: #16a34a; background: #f0fdf4; }
+        .ps-notification-item p { margin: 0; }
+        .ps-notification-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 4px;
+        }
+        .ps-notification-time { font-size: 12px; color: #64748b; }
+
         /* Stats row */
         .ps-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
         .ps-stat-card {
@@ -313,6 +338,29 @@ export default function BehavioralThreatsAdmin() {
               <p>Real-time behavioral monitoring and anomaly detection.</p>
             </div>
             <div className="ps-topbar-right">
+              {stats?.notificationSummary?.highPriority > 0 ? (
+                <button className="ps-icon-btn" title="High-priority alerts">
+                  <FaBell />
+                  <span style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    background: '#dc2626',
+                    color: '#fff',
+                    borderRadius: '999px',
+                    minWidth: 18,
+                    height: 18,
+                    padding: '0 5px',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {stats.notificationSummary.highPriority}
+                  </span>
+                </button>
+              ) : null}
               <button className="ps-hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
               <Link href="/dashboard" className="ps-refresh-btn" style={{textDecoration: 'none'}}>
                 Return to Dashboard App
@@ -338,7 +386,7 @@ export default function BehavioralThreatsAdmin() {
                  {/* Top Stats row */}
                  <div className="ps-stats-row">
                    <div className="ps-stat-card blue">
-                     <p className="ps-stat-label">TOTAL LOGIN ANALYSES</p>
+                     <p className="ps-stat-label">TOTAL SUSPICIOUS ACTIVITIES</p>
                      <p className="ps-stat-value">{stats.totalEvents}</p>
                    </div>
                    <div className="ps-stat-card red">
@@ -346,15 +394,15 @@ export default function BehavioralThreatsAdmin() {
                      <p className="ps-stat-value" style={{color: '#dc2626'}}>{stats.blockedAttempts}</p>
                    </div>
                    <div className="ps-stat-card orange">
-                     <p className="ps-stat-label">RECENT ANOMALIES</p>
-                     <p className="ps-stat-value" style={{color: '#ea580c'}}>{stats.recentThreats?.length || 0}</p>
+                     <p className="ps-stat-label">UNREAD ADMIN ALERTS</p>
+                     <p className="ps-stat-value" style={{color: '#ea580c'}}>{stats.notificationSummary?.total || 0}</p>
                    </div>
                  </div>
 
                  {/* Threats Table */}
                  <div className="ps-card">
                    <div className="ps-card-header">
-                     <h3>Recent Behavioral Anomalies Log</h3>
+                     <h3>Recent Suspicious Activity Log (All Sources)</h3>
                      <button className="ps-refresh-btn" onClick={fetchStats}>↻ Refresh Data</button>
                    </div>
                    <div className="ps-table-wrapper">
@@ -367,6 +415,7 @@ export default function BehavioralThreatsAdmin() {
                          <thead>
                            <tr>
                              <th>Timestamp</th>
+                            <th>Source</th>
                              <th>Outcome</th>
                              <th>Risk Profile</th>
                              <th>Hardcoded Rules Triggered</th>
@@ -378,6 +427,9 @@ export default function BehavioralThreatsAdmin() {
                              <tr key={threat.id}>
                                <td style={{ color: '#64748b', fontSize: '13px' }}>
                                  {new Date(threat.createdAt).toLocaleString()}
+                               </td>
+                               <td>
+                                 <span className="ps-ip-code">{String(threat.source || 'unknown').toUpperCase()}</span>
                                </td>
                                <td>
                                  {threat.actionTaken === 'block' ? (
@@ -397,7 +449,7 @@ export default function BehavioralThreatsAdmin() {
                                  {threat.triggeredRules && threat.triggeredRules.length > 0 ? (
                                    threat.triggeredRules.map((r, i) => (
                                      <span key={i} className="ps-rule-tag" title={r}>
-                                       {r.replace(' (', '\n(')}
+                                       {String(r).replace(' (', '\n(')}
                                      </span>
                                    ))
                                  ) : (
@@ -413,6 +465,36 @@ export default function BehavioralThreatsAdmin() {
                        </table>
                      )}
                    </div>
+                 </div>
+
+                 <div className="ps-card">
+                   <div className="ps-card-header">
+                     <h3>Admin Notifications</h3>
+                     <span style={{ fontSize: 12, color: '#64748b' }}>
+                       High Priority: {stats.notificationSummary?.highPriority || 0}
+                     </span>
+                   </div>
+                   {stats.recentNotifications?.length ? (
+                     <div className="ps-notification-list">
+                       {stats.recentNotifications.map((alert) => (
+                         <div key={alert.id} className={`ps-notification-item ${alert.priority || 'normal'}`}>
+                           <div className="ps-notification-head">
+                             <p style={{ fontWeight: 700, color: '#0f172a' }}>
+                               {alert.title}
+                             </p>
+                             <span className="ps-notification-time">
+                               {new Date(alert.createdAt).toLocaleString()}
+                             </span>
+                           </div>
+                           <p style={{ color: '#334155', fontSize: 13 }}>{alert.message}</p>
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <div style={{ padding: '16px 22px 20px', color: '#64748b', fontSize: 13 }}>
+                       No admin alerts at the moment.
+                     </div>
+                   )}
                  </div>
                </>
             )}

@@ -9,9 +9,22 @@ export function encryptOtp(otp) {
   return encryptValue(String(otp));
 }
 
-export function matchesOtp(rawOtp, encryptedOtp) {
+export function matchesOtp(rawOtp, storedOtp) {
+  const raw = String(rawOtp || '').trim();
+  const stored = String(storedOtp || '').trim();
+
+  if (!raw || !stored) {
+    return false;
+  }
+
+  // Current behavior stores OTPs as plain text in DB.
+  if (raw === stored) {
+    return true;
+  }
+
+  // Backward compatibility for older encrypted OTP rows.
   try {
-    const resolved = decryptValue(encryptedOtp);
+    const resolved = decryptValue(stored);
     return String(rawOtp).trim() === String(resolved).trim();
   } catch {
     return false;

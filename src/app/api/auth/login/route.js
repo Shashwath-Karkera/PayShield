@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { calculateRisk } from '@/lib/behavior/riskCalculator';
 import { verifySpicePassword } from '@/lib/security/password';
-import { encryptOtp, generateOtpCode } from '@/lib/security/verification';
+import { generateOtpCode } from '@/lib/security/verification';
 import { generateSessionToken } from '@/lib/security/device';
 
 const loginSchema = z.object({
@@ -112,8 +112,8 @@ export async function POST(request) {
       data: {
         userId: user.id,
         sessionId: session.id,
-        emailOtpEnc: encryptOtp(emailOtp),
-        smsOtpEnc: encryptOtp(smsOtp),
+        emailOtpEnc: emailOtp,
+        smsOtpEnc: smsOtp,
         ipAddress: data.ipAddress || '0.0.0.0',
         deviceDna: data.deviceDna,
         locationCountry: data.locationCountry,
@@ -136,7 +136,7 @@ export async function POST(request) {
           userId: user.id,
           identifier: user.email,
           type: 'email',
-          otpEnc: encryptOtp(emailOtp),
+          otpEnc: emailOtp,
           expiresAt
         }
       })
@@ -155,7 +155,7 @@ export async function POST(request) {
             userId: user.id,
             identifier: user.phone,
             type: 'phone',
-            otpEnc: encryptOtp(smsOtp),
+            otpEnc: smsOtp,
             expiresAt
           }
         })
@@ -207,18 +207,21 @@ export async function POST(request) {
       });
     }
 
-    try {
-      const [{ sendVerificationEmail }, { sendVerificationSMS }] = await Promise.all([
-        import('@/lib/services/emailService'),
-        import('@/lib/services/smsService')
-      ]);
+    const [{ sendVerificationEmail }, { sendVerificationSMS }] = await Promise.all([
+      import('@/lib/services/emailService'),
+      import('@/lib/services/smsService')
+    ]);
 
-      await sendVerificationEmail(user.email, emailOtp, user.name);
-      if (user.phone) {
-        await sendVerificationSMS(user.phone, smsOtp);
+    const emailResult = await sendVerificationEmail(user.email, emailOtp, user.name);
+    if (!emailResult?.success) {
+      throw new Error(emailResult?.error || 'Failed to send login email OTP.');
+    }
+
+    if (user.phone) {
+      const smsResult = await sendVerificationSMS(user.phone, smsOtp);
+      if (!smsResult?.success) {
+        throw new Error(smsResult?.error || 'Failed to send login SMS OTP.');
       }
-    } catch {
-      // Keep response successful in local/dev environments.
     }
 
     return Response.json(
